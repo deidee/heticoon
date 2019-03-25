@@ -29,7 +29,12 @@
     var d = 24;
 
     function deJade() {
-        return new paper.Color(0, 255, 0);
+        var r = Math.random() * .5;
+        var g = Math.random() * .5 + .5;
+        var b = Math.random() * .75;
+        var a = .5;
+
+        return new paper.Color(r, g, b);
     }
 
     window.onload = function() {
