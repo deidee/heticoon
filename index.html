@@ -28,6 +28,10 @@
     var rows = 16;
     var d = 24;
 
+    function deJade() {
+        return new paper.Color(0, 255, 0);
+    }
+
     window.onload = function() {
         var canvas = document.getElementById('paper');
         paper.setup(canvas);
@@ -39,6 +43,7 @@
                 var y = row * d;
 
                 var rect = new paper.Shape.Rectangle({
+                    active: false,
                     x: x,
                     y: y,
                     width: d,
@@ -48,7 +53,13 @@
                 });
 
                 rect.onClick = function(event) {
-                    this.remove();
+                    if(this.active === false) {
+                        this.active = true;
+                        this.fillColor = deJade();
+                    } else {
+                        this.active = false;
+                        this.fillColor = 'white';
+                    }
                 }
             }
         }
