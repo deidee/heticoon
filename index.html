@@ -3,19 +3,55 @@
 <head>
     <meta charset="utf-8">
     <title>hetIcoon</title>
+    <link rel="stylesheet" href="https://grid.sexy/css/grid.min.css">
     <link rel="stylesheet" href="https://hetcdn.nl/deidee/css/destijl.min.css">
+    <style>
+        #paper {
+            display: block;
+            width: 100%;
+        }
+    </style>
 </head>
 <body id="top">
-<canvas id="myCanvas" resize></canvas>
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <canvas id="paper" resize></canvas>
+            </div>
+        </div>
+    </div>
+</main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.0/paper-full.min.js"></script>
 <script type="text/javascript">
+    var columns = 16;
+    var rows = 16;
+    var d = 24;
+
     window.onload = function() {
-        var canvas = document.getElementById('myCanvas');
+        var canvas = document.getElementById('paper');
         paper.setup(canvas);
-        var point = new paper.Point(20, 20);
-        var size = new paper.Size(60, 60);
-        var shape = new paper.Shape.Rectangle(point, size);
-        shape.strokeColor = 'black';
+
+        for(var column = 1; column <= columns; column++) {
+            for(var row = 1; row <= rows; row++) {
+
+                var x = column * d;
+                var y = row * d;
+
+                var rect = new paper.Shape.Rectangle({
+                    x: x,
+                    y: y,
+                    width: d,
+                    height: d,
+                    fillColor: 'white',
+                    strokeColor: 'rgba(0, 0, 0, .25)'
+                });
+
+                rect.onClick = function(event) {
+                    this.remove();
+                }
+            }
+        }
         paper.view.draw();
     }
 </script>
