@@ -41,6 +41,8 @@
         var canvas = document.getElementById('paper');
         paper.setup(canvas);
 
+        var strokeColor = new paper.Color(0, 0, 0, .25);
+
         for(var column = 1; column <= columns; column++) {
             for(var row = 1; row <= rows; row++) {
 
@@ -54,7 +56,7 @@
                     width: d,
                     height: d,
                     fillColor: 'white',
-                    strokeColor: 'rgba(0, 0, 0, .25)'
+                    strokeColor: strokeColor
                 });
 
                 rect.onClick = function(event) {
