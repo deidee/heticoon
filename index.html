@@ -2,7 +2,10 @@
 <html dir="ltr" lang="nl">
 <head>
     <meta charset="utf-8">
+    <meta name="robots" content="none">
     <title>hetIcoon</title>
+    <link rel="author" href="https://alexanderchristiaanjacob.com/">
+    <link rel="shortcut icon" href="https://deidee.nl/favicon.ico">
     <link rel="stylesheet" href="https://grid.sexy/css/grid.min.css">
     <link rel="stylesheet" href="https://hetcdn.nl/deidee/css/destijl.min.css">
     <style>
@@ -34,7 +37,7 @@
         var b = Math.random() * .75;
         var a = .5;
 
-        return new paper.Color(r, g, b);
+        return new paper.Color(r, g, b, a);
     }
 
     window.onload = function() {
