@@ -1,0 +1,23 @@
+<!doctype html>
+<html dir="ltr" lang="nl">
+<head>
+    <meta charset="utf-8">
+    <title>hetIcoon</title>
+    <link rel="stylesheet" href="https://hetcdn.nl/deidee/css/destijl.min.css">
+</head>
+<body id="top">
+<canvas id="myCanvas" resize></canvas>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.0/paper-full.min.js"></script>
+<script type="text/javascript">
+    window.onload = function() {
+        var canvas = document.getElementById('myCanvas');
+        paper.setup(canvas);
+        var point = new paper.Point(20, 20);
+        var size = new paper.Size(60, 60);
+        var shape = new paper.Shape.Rectangle(point, size);
+        shape.strokeColor = 'black';
+        paper.view.draw();
+    }
+</script>
+</body>
+</html>
