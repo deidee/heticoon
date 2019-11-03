@@ -1,0 +1,41 @@
+<!doctype html>
+<html dir="ltr" lang="nl">
+<head>
+    <meta charset="utf-8">
+    <title>Input</title>
+</head>
+<body>
+<form action="./" method="get">
+    <table>
+        <tbody>
+        </tbody>
+    </table>
+    <div><button type="submit">Doe</button></div>
+</form>
+<script>
+    "use strict";
+
+    let tbody = document.querySelector('tbody');
+
+    let cols = 16;
+    let rows = 16;
+
+    for(let row = 0; row < rows; row++) {
+        let tr = document.createElement('tr');
+
+        for(let col = 0; col < cols; col++) {
+            let td = document.createElement('td');
+            let input = document.createElement('input');
+            input.setAttribute('name', 'data[' + row + '][' + col + ']');
+            input.setAttribute('type', 'checkbox');
+            td.appendChild(input);
+            tr.appendChild(td);
+        }
+
+        tbody.appendChild(tr);
+    }
+
+
+</script>
+</body>
+</html>
