@@ -2,8 +2,8 @@
 
 class Deicon
 {
-    private $height = 300;
-    private $width = 300;
+    private $height = 384;
+    private $width = 384;
     private $size = 24;
     private $type = 'png';
 
@@ -23,8 +23,8 @@ class Deicon
 0100101011101110
 0100101010001000
 1110111011101110
+0000000000000000
 STR;
-
 
     public function __construct($settings = []) {
 
@@ -45,6 +45,8 @@ STR;
         $this->im = new Imagick();
         $this->im->newImage($this->width, $this->height, new ImagickPixel('#ffffff'));
         $this->im->setImageFormat($this->type);
+
+        $this->data = str_replace(["\r", "\n"], '', $this->data);
 
         $this->draw();
     }
@@ -89,9 +91,11 @@ STR;
                 $y2 = $y1 + $this->size + mt_rand(-1, 1);
                 $color = $this->palette[$i];
 
-                $draw->setFillColor(new ImagickPixel($color));
-                $draw->setFillOpacity(.5);
-                $draw->rectangle($x1, $y1, $x2, $y2);
+                if($this->data{$i} === '1') {
+                    $draw->setFillColor(new ImagickPixel($color));
+                    $draw->setFillOpacity(.5);
+                    $draw->rectangle($x1, $y1, $x2, $y2);
+                }
 
                 $i++;
             }
