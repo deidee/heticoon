@@ -7,6 +7,25 @@ class Deicon
     private $size = 24;
     private $type = 'png';
 
+    private $data = <<<STR
+0000001000000000
+0000001000000000
+0000111011100000
+0000101010100000
+0000101011100000
+0000101010000000
+0000111011100000
+0000000000000000
+1110001000000000
+0100001000000000
+0100111011101110
+0100101010101010
+0100101011101110
+0100101010001000
+1110111011101110
+STR;
+
+
     public function __construct($settings = []) {
 
         if(!empty($settings)):
@@ -28,6 +47,17 @@ class Deicon
         $this->im->setImageFormat($this->type);
 
         $this->draw();
+    }
+
+    public function __set($name, $value)
+    {
+        $method = 'set' . ucfirst($name);
+
+        if(method_exists($this, $method)) {
+            $this->$method($name);
+        } else {
+            $this->$name = $value;
+        }
     }
 
     public function __toString() {
@@ -93,5 +123,9 @@ class Deicon
         $target = $dir . $filename;
 
         file_put_contents($target, $this->im->getImageBlob());
+    }
+
+    public function setInput() {
+        echo 'yes.';
     }
 }
