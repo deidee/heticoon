@@ -3,6 +3,20 @@
 <head>
     <meta charset="utf-8">
     <title>Input</title>
+    <style>
+
+        input[type=checkbox]::after {
+            content: '';
+            display: inline-block;
+            height: 1.5rem;
+            width: 1.5rem;
+        }
+
+        input[type=checkbox]:checked::after {
+            background: lime;
+        }
+
+    </style>
 </head>
 <body>
 <form action="./" method="get">
@@ -16,9 +30,11 @@
     "use strict";
 
     let tbody = document.querySelector('tbody');
+    let form = document.querySelector('form');
 
     let cols = 16;
     let rows = 16;
+    let i = 0;
 
     for(let row = 0; row < rows; row++) {
         let tr = document.createElement('tr');
@@ -28,11 +44,20 @@
             let input = document.createElement('input');
             input.setAttribute('name', 'data[' + row + '][' + col + ']');
             input.setAttribute('type', 'checkbox');
+            input.setAttribute('value', i);
             td.appendChild(input);
             tr.appendChild(td);
+
+            ++i;
         }
 
         tbody.appendChild(tr);
+    }
+
+    form.onsubmit = function(e) {
+        e.preventDefault();
+        let formData = new FormData(form);
+        console.log(Array.from(formData));
     }
 
 
