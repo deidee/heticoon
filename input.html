@@ -26,6 +26,7 @@
     </table>
     <div><button type="submit">Doe</button></div>
 </form>
+<pre></pre>
 <script>
     "use strict";
 
@@ -57,7 +58,8 @@
     form.onsubmit = function(e) {
         e.preventDefault();
         let formData = new FormData(form);
-        console.log(Array.from(formData));
+        let pre = document.querySelector('pre');
+        pre.innerText = JSON.stringify(Array.from(formData));
     }
 
 
