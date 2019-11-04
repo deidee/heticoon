@@ -5,6 +5,11 @@
     <title>Input</title>
     <style>
 
+        * {
+            border: 0;
+            padding: 0;
+        }
+
         input[type=checkbox]::after {
             content: '';
             display: inline-block;
@@ -14,6 +19,18 @@
 
         input[type=checkbox]:checked::after {
             background: lime;
+        }
+
+        label {
+            background: black;
+            display: inline-block;
+            height: 1.5rem;
+            position: relative;
+            width: 1.5rem;
+        }
+
+        table {
+            border-collapse: collapse;
         }
 
     </style>
@@ -42,11 +59,13 @@
 
         for(let col = 0; col < cols; col++) {
             let td = document.createElement('td');
+            let label = document.createElement('label');
             let input = document.createElement('input');
             input.setAttribute('name', 'data[' + row + '][' + col + ']');
             input.setAttribute('type', 'checkbox');
             input.setAttribute('value', i);
-            td.appendChild(input);
+            label.appendChild(input);
+            td.appendChild(label);
             tr.appendChild(td);
 
             ++i;
