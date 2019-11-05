@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="robots" content="none">
     <title>Input</title>
+    <link rel="stylesheet" href="https://grid.sexy/css/grid.min.css">
     <style>
 
         * {
@@ -38,20 +39,33 @@
     </style>
 </head>
 <body>
-<form action="./" method="get">
-    <table>
-        <tbody>
-        </tbody>
-    </table>
-    <div>
-        <select name="type" id="type">
-            <option value="jpg">image/jpeg</option>
-            <option value="png">image/png</option>
-        </select>
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <form action="./" method="get">
+                <table>
+                    <tbody>
+                    </tbody>
+                </table>
+                <div>
+                    <select name="type" id="type">
+                        <option value="jpg">image/jpeg</option>
+                        <option value="png">image/png</option>
+                    </select>
+                </div>
+                <div>
+                    <button type="submit">Doe</button>
+                </div>
+            </form>
+        </div>
+        <div class="col">
+            <pre></pre>
+        </div>
+        <div class="col">
+            <img src="src/scripted-image.php" alt="">
+        </div>
     </div>
-    <div><button type="submit">Doe</button></div>
-</form>
-<pre></pre>
+</div>
 <script>
     "use strict";
 
