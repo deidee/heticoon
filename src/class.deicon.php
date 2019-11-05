@@ -86,9 +86,11 @@ STR;
         for($row = 0; $row < $this->rows; $row++) {
             for($col = 0; $col < $this->cols; $col++) {
                 $x1 = $col * $this->size;
-                $x2 = $x1 + $this->size + mt_rand(-1, 1);
+                $x2 = $x1 + $this->size;
+                if($this->size > 3) $x2 += mt_rand(-1, 1);
                 $y1 = $row * $this->size;
-                $y2 = $y1 + $this->size + mt_rand(-1, 1);
+                $y2 = $y1 + $this->size;
+                if($this->size > 3) $y2 += mt_rand(-1, 1);
                 $color = $this->palette[$i];
 
                 if($this->data{$i} === '1') {
