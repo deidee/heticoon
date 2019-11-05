@@ -1,3 +1,8 @@
+<?php
+
+$size = !empty($_GET['size']) ? intval($_GET['size']) : 24;
+
+?>
 <!doctype html>
 <html dir="ltr" lang="nl">
 <head>
@@ -48,7 +53,7 @@
                     <tbody>
                     </tbody>
                 </table>
-                <div><input name="size" type="number"></div>
+                <div><input min="1" max="64" step="1" name="size" type="number" value="<?= $size ?>"></div>
                 <div>
                     <select name="type" id="type">
                         <option value="jpg">image/jpeg</option>
@@ -60,7 +65,7 @@
                 </div>
             </form>
         </div>
-        <div class="col">
+        <div class="col" hidden>
             <pre></pre>
         </div>
         <div class="col">
