@@ -7,6 +7,8 @@ class Deicon
     private $size = 24;
     private $type = 'png';
 
+    private $palette = [];
+
     private $data = <<<STR
 0000001000000000
 0000001000000000
@@ -37,11 +39,11 @@ STR;
         $this->cols = ceil($this->width / $this->size);
         $this->rows = ceil($this->height / $this->size);
         $this->blocks = $this->rows * $this->cols;
-        $this->palette = [];
 
         // Fill the palette with colors.
         $this->populate();
 
+        // This is where the magick happens.
         $this->im = new Imagick();
         $this->im->newImage($this->width, $this->height, new ImagickPixel('#ffffff'));
         $this->im->setImageFormat($this->type);
@@ -93,7 +95,7 @@ STR;
                 //if($this->size > 3) $y2 += mt_rand(-1, 1);
                 $color = $this->palette[$i];
 
-                if($this->data{$i} === '1') {
+                if(!empty($this->data{$i}) && $this->data{$i} === '1') {
                     $draw->setFillColor(new ImagickPixel($color));
                     $draw->setFillOpacity(.5);
                     $draw->rectangle($x1, $y1, $x2, $y2);

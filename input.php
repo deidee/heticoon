@@ -42,11 +42,12 @@
 <div class="container">
     <div class="row">
         <div class="col">
-            <form action="./" method="get">
+            <form action="input.php" method="get">
                 <table>
                     <tbody>
                     </tbody>
                 </table>
+                <div><input name="size" type="number"></div>
                 <div>
                     <select name="type" id="type">
                         <option value="jpg">image/jpeg</option>
@@ -62,7 +63,17 @@
             <pre></pre>
         </div>
         <div class="col">
-            <img src="src/scripted-image.php" alt="">
+            <?php
+
+            $accepted_vars = ['height' => 300, 'width' => 300, 'size' => 24, 'type' => 'jpg'];
+            $query_vars = array_intersect_key($_GET, $accepted_vars);
+            $query_string = http_build_query($query_vars);
+            $src = 'src/scripted-image.php?' . $query_string;
+
+            print_r($query_vars);
+
+            ?>
+            <img src="<?= $src ?>" alt="">
         </div>
     </div>
 </div>
@@ -97,7 +108,7 @@
     }
 
     form.onsubmit = function(e) {
-        e.preventDefault();
+        //e.preventDefault();
         let formData = new FormData(form);
         let pre = document.querySelector('pre');
         pre.innerText = JSON.stringify(Array.from(formData));
