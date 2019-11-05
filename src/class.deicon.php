@@ -32,13 +32,14 @@ STR;
 
         if(!empty($settings)):
             foreach($settings as $key => $value):
-                $this->$key = $value;
+                if(!empty($key)) $this->$key = $value;
             endforeach;
         endif;
 
-        $this->cols = ceil($this->width / $this->size);
-        $this->rows = ceil($this->height / $this->size);
-        $this->blocks = $this->rows * $this->cols;
+        $this->array = preg_split('/\n|\r\n?/', $this->data);
+        $this->rows = $this->cols = count($this->array);
+        $this->width = $this->height = $this->cols * $this->size;
+        $this->blocks = pow($this->rows, 2);
 
         // Fill the palette with colors.
         $this->populate();

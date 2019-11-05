@@ -112,14 +112,6 @@
         let formData = new FormData(form);
         let pre = document.querySelector('pre');
         pre.innerText = JSON.stringify(Array.from(formData));
-
-        let xhr = new XMLHttpRequest();
-        xhr.open("GET", "src/scripted-image.php");
-        xhr.send(formData);
-        xhr.onreadystatechange = function() {
-            console.log('Response: ', xhr.response);
-        }
-
     }
 
 
