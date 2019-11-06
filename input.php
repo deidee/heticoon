@@ -58,6 +58,7 @@ $size = !empty($_GET['size']) ? intval($_GET['size']) : 24;
                     <select name="type" id="type">
                         <option value="jpg">image/jpeg</option>
                         <option value="png">image/png</option>
+                        <option value="svg">image/svg</option>
                     </select>
                 </div>
                 <div>

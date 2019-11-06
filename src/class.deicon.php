@@ -40,6 +40,11 @@ STR;
         $this->rows = $this->cols = count($this->array);
         $this->width = $this->height = $this->cols * $this->size;
         $this->blocks = pow($this->rows, 2);
+        $this->dataSet = [];
+
+        foreach($this->array as $key => $value) {
+            $this->dataSet[] = str_split($value);
+        }
 
         // Fill the palette with colors.
         $this->populate();
