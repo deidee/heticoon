@@ -10,7 +10,6 @@ $size = !empty($_GET['size']) ? intval($_GET['size']) : 24;
     <meta name="robots" content="none">
     <title>Input</title>
     <link rel="stylesheet" href="https://grid.sexy/css/grid.min.css">
-    <link rel="stylesheet" href="https://hetcdn.nl/deidee/css/destijl.min.css">
     <style>
 
         * {
