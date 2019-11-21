@@ -58,10 +58,12 @@ $size = !empty($_GET['size']) ? intval($_GET['size']) : 24;
                         <option value="jpg">image/jpeg</option>
                         <option value="png">image/png</option>
                         <option value="svg">image/svg</option>
+                        <option value="ico">favicon</option>
                     </select>
                 </div>
                 <div>
                     <button type="submit">Doe</button>
+                    <button name="save" type="submit" value="1">Opslaan</button>
                 </div>
             </form>
         </div>
@@ -71,7 +73,7 @@ $size = !empty($_GET['size']) ? intval($_GET['size']) : 24;
         <div class="col">
             <?php
 
-            $accepted_vars = ['height' => 300, 'width' => 300, 'size' => 24, 'type' => 'jpg'];
+            $accepted_vars = ['height' => 300, 'width' => 300, 'size' => 24, 'type' => 'jpg', 'save' => false];
             $query_vars = array_intersect_key($_GET, $accepted_vars);
             $query_string = http_build_query($query_vars);
             $src = 'src/scripted-image.php?' . $query_string;
