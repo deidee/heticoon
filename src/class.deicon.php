@@ -88,6 +88,7 @@ STR;
 
     public function draw() {
         $draw = new ImagickDraw();
+        $draw->setViewbox(0, 0, $this->width, $this->height);
         $draw->setStrokeWidth(0);
         $i = 0;
 
