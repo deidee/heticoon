@@ -2,6 +2,8 @@
 
 class Deicon
 {
+    private $cols;
+    private $rows;
     private $height = 384;
     private $width = 384;
     private $size = 24;
