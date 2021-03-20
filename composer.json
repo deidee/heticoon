@@ -1,0 +1,15 @@
+{
+    "name": "deidee/heticoon",
+    "description": "HetIcoon.",
+    "type": "project",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "ACJ",
+            "email": "gitlab@acjs.net"
+        }
+    ],
+    "require": {
+      "ext-imagick": "*"
+    }
+}
