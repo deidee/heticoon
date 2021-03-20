@@ -33,6 +33,8 @@ $cell = 0;
 </head>
 <body id="top">
 <form action="">
+    <label><input name="rows" type="number" min="1" max="256" value="<?= $rows ?>" placeholder="Rijen"></label>
+    <label><input name="cols" type="number" min="1" max="256" value="<?= $cols ?>" placeholder="Kolommen"></label>
     <table>
         <tbody>
         <?php for($r = 0; $r < $rows; $r++): ?>
