@@ -1,4 +1,7 @@
 <?php
+declare(strict_types=1);
+
+namespace deidee;
 
 require_once '../src/class.deicon.php';
 

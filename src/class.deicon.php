@@ -1,4 +1,11 @@
 <?php
+declare(strict_types=1);
+
+namespace deidee;
+
+use Imagick;
+use ImagickDraw;
+use ImagickPixel;
 
 class Deicon
 {
@@ -135,9 +142,5 @@ class Deicon
         $target = $dir . $filename;
 
         file_put_contents($target, $this->im->getImageBlob());
-    }
-
-    public function setInput() {
-        echo 'yes.';
     }
 }
