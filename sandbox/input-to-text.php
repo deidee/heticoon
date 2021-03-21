@@ -47,26 +47,46 @@ $cell = 0;
 <head>
     <meta charset="utf-8">
     <title>HetIcoon</title>
+    <link rel="stylesheet" href="https://grid.sexy/css/grid.min.css">
 </head>
 <body id="top">
-<form action="">
-    <label><input name="rows" type="number" min="1" max="256" value="<?= $rows ?>" placeholder="Rijen"></label>
-    <label><input name="cols" type="number" min="1" max="256" value="<?= $cols ?>" placeholder="Kolommen"></label>
-    <table>
-        <tbody>
-        <?php for($r = 0; $r < $rows; $r++): ?>
-        <tr>
-            <?php for($c = 0; $c < $cols; $c++): $cell++; ?>
-            <td><label><input<?= (!empty($matrix[$r][$c]) ? ' checked' : '') ?> id="cell-<?= $cell ?>" name="data[<?= $r ?>][<?= $c ?>]" type="checkbox" value="<?= $cell ?>"></label></td>
-            <?php endfor; ?>
-        </tr>
-        <?php endfor; ?>
-        </tbody>
-    </table>
-    <button type="submit">Doe</button>
-</form>
-<pre>
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <form action="">
+                <label><input name="rows" type="number" min="1" max="256" value="<?= $rows ?>" placeholder="Rijen"></label>
+                <label><input name="cols" type="number" min="1" max="256" value="<?= $cols ?>" placeholder="Kolommen"></label>
+                <table>
+                    <tbody>
+                    <?php for($r = 0; $r < $rows; $r++): ?>
+                        <tr>
+                            <?php for($c = 0; $c < $cols; $c++): $cell++; ?>
+                                <td><label><input<?= (!empty($matrix[$r][$c]) ? ' checked' : '') ?> id="cell-<?= $cell ?>" name="data[<?= $r ?>][<?= $c ?>]" type="checkbox" value="<?= $cell ?>"></label></td>
+                            <?php endfor; ?>
+                        </tr>
+                    <?php endfor; ?>
+                    </tbody>
+                </table>
+                <button type="submit">Doe</button>
+            </form>
+        </div>
+        <div class="col">
+            <?php
+
+            $accepted_vars = ['rows' => 16, 'cols' => 16, 'height' => 300, 'width' => 300, 'size' => 24, 'type' => 'jpg', 'save' => false, 'data' => []];
+            $query_vars = array_intersect_key($_GET, $accepted_vars);
+            $query_string = http_build_query($query_vars);
+            $src = 'scripted-image.php?' . $query_string;
+
+            ?>
+            <img src="<?= $src ?>" alt="">
+        </div>
+        <div class="col">
+            <pre>
 <?= htmlspecialchars(print_r($matrix, true)) ?>
 </pre>
+        </div>
+    </div>
+</div>
 </body>
 </html>

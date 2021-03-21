@@ -2,33 +2,35 @@
 
 class Deicon
 {
-    private $cols;
-    private $rows;
+    private $cols = 16;
+    private $rows = 16;
     private $height = 384;
     private $width = 384;
     private $size = 24;
     private $type = 'png';
+    private $blocks = 0;
+    private $dataSet = [];
 
     private $palette = [];
 
-    private $data = <<<STR
-0000001000000000
-0000001000000000
-0000111011100000
-0000101010100000
-0000101011100000
-0000101010000000
-0000111011100000
-0000000000000000
-1110001000000000
-0100001000000000
-0100111011101110
-0100101010101010
-0100101011101110
-0100101010001000
-1110111011101110
-0000000000000000
-STR;
+    private $data = [
+        [0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,1,1,1,0,1,1,1,0,0,0,0,0],
+        [0,0,0,0,1,0,1,0,1,0,1,0,0,0,0,0],
+        [0,0,0,0,1,0,1,0,1,1,1,0,0,0,0,0],
+        [0,0,0,0,1,0,1,0,1,0,0,0,0,0,0,0],
+        [0,0,0,0,1,1,1,0,1,1,1,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0],
+        [0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0],
+        [0,1,0,0,1,1,1,0,1,1,1,0,1,1,1,0],
+        [0,1,0,0,1,0,1,0,1,0,1,0,1,0,1,0],
+        [0,1,0,0,1,0,1,0,1,1,1,0,1,1,1,0],
+        [0,1,0,0,1,0,1,0,1,0,0,0,1,0,0,0],
+        [1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    ];
 
     public function __construct($settings = []) {
 
@@ -38,15 +40,10 @@ STR;
             endforeach;
         endif;
 
-        $this->array = preg_split('/\n|\r\n?/', $this->data);
-        $this->rows = $this->cols = count($this->array);
-        $this->width = $this->height = $this->cols * $this->size;
-        $this->blocks = pow($this->rows, 2);
-        $this->dataSet = [];
-
-        foreach($this->array as $key => $value) {
-            $this->dataSet[] = str_split($value);
-        }
+        $this->height = $this->rows * $this->size;
+        $this->width = $this->cols * $this->size;
+        $this->blocks = $this->rows * $this->cols;
+        $this->dataSet = $this->data;
 
         // Fill the palette with colors.
         $this->populate();
@@ -55,8 +52,6 @@ STR;
         $this->im = new Imagick();
         $this->im->newImage($this->width, $this->height, new ImagickPixel('#ffffff'));
         $this->im->setImageFormat($this->type);
-
-        $this->data = str_replace(["\r", "\n"], '', $this->data);
 
         $this->draw();
     }
@@ -104,7 +99,7 @@ STR;
                 //if($this->size > 3) $y2 += mt_rand(-1, 1);
                 $color = $this->palette[$i];
 
-                if(!empty($this->data{$i}) && $this->data{$i} === '1') {
+                if(!empty($this->data[$row][$col])) {
                     $draw->setFillColor(new ImagickPixel($color));
                     $draw->setFillOpacity(.5);
                     $draw->rectangle($x1, $y1, $x2, $y2);
