@@ -9,6 +9,11 @@
             "email": "gitlab@acjs.net"
         }
     ],
+    "autoload": {
+        "psr-4": {
+            "deidee\\heticoon\\": "src/"
+        }
+    },
     "require": {
       "ext-imagick": "*"
     }

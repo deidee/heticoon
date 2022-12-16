@@ -1,4 +1,7 @@
 
 /.idea/
+/dist/images/*.gif
+/dist/images/*.jpg
+/dist/images/*.png
 /node_modules/
 /vendor/

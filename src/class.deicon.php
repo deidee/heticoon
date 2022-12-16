@@ -9,12 +9,14 @@ use ImagickPixel;
 
 class Deicon
 {
+    private $im;
     private $cols = 16;
     private $rows = 16;
     private $height = 384;
     private $width = 384;
     private $size = 24;
     private $type = 'png';
+    private $offset = 0;
     private $blocks = 0;
     private $dataSet = [];
 
@@ -54,13 +56,6 @@ class Deicon
 
         // Fill the palette with colors.
         $this->populate();
-
-        // This is where the magick happens.
-        $this->im = new Imagick();
-        $this->im->newImage($this->width, $this->height, new ImagickPixel('#ffffff'));
-        $this->im->setImageFormat($this->type);
-
-        $this->draw();
     }
 
     public function __set($name, $value)
@@ -75,6 +70,8 @@ class Deicon
     }
 
     public function __toString() {
+        $this->draw();
+
         header('Content-Type: ' . $this->im->getImageMimeType());
 
         return $this->im->getImageBlob();
@@ -85,12 +82,15 @@ class Deicon
         $g = mt_rand(127, 255);
         $b = mt_rand(0, 191);
 
-        $color = "rgb($r, $g, $b)";
-
-        return $color;
+        return "rgb($r, $g, $b)";
     }
 
     public function draw() {
+        // This is where the magick happens.
+        $this->im = new Imagick();
+        $this->im->newImage($this->width, $this->height, new ImagickPixel('#ffffff'));
+        $this->im->setImageFormat($this->type);
+
         $draw = new ImagickDraw();
         $draw->setViewbox(0, 0, $this->width, $this->height);
         $draw->setStrokeWidth(0);
@@ -98,10 +98,10 @@ class Deicon
 
         for($row = 0; $row < $this->rows; $row++) {
             for($col = 0; $col < $this->cols; $col++) {
-                $x1 = $col * $this->size;
+                $x1 = ($col + $this->offset) * $this->size;
                 $x2 = $x1 + $this->size - 1;
                 //if($this->size > 3) $x2 += mt_rand(-1, 1);
-                $y1 = $row * $this->size;
+                $y1 = ($row + $this->offset) * $this->size;
                 $y2 = $y1 + $this->size - 1;
                 //if($this->size > 3) $y2 += mt_rand(-1, 1);
                 $color = $this->palette[$i];
@@ -137,10 +137,18 @@ class Deicon
     }
 
     public function save() {
+        $this->draw();
+
         $dir = '../dist/images/';
         $filename = 'image-' . time() . '.' . $this->im->getImageFormat();
         $target = $dir . $filename;
 
         file_put_contents($target, $this->im->getImageBlob());
+    }
+
+    public function setOffset($offset = 1) {
+        $this->offset = $offset;
+        $this->width += $this->offset * $this->size;
+        $this->height += $this->offset * $this->size;
     }
 }
