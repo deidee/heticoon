@@ -140,7 +140,7 @@ class Deicon
         $this->draw();
 
         $dir = '../dist/images/';
-        $filename = 'image-' . time() . '.' . $this->im->getImageFormat();
+        $filename = 'image-' . time() . '.' . strtolower($this->im->getImageFormat());
         $target = $dir . $filename;
 
         file_put_contents($target, $this->im->getImageBlob());
