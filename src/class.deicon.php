@@ -17,6 +17,7 @@ class Deicon
     private $size = 24;
     private $type = 'png';
     private $offset = 0;
+    private $padding = 0;
     private $blocks = 0;
     private $dataSet = [];
 
@@ -77,7 +78,8 @@ class Deicon
         return $this->im->getImageBlob();
     }
 
-    public function deJade() {
+    public function deJade(): string
+    {
         $r = mt_rand(0, 127);
         $g = mt_rand(127, 255);
         $b = mt_rand(0, 191);
@@ -98,10 +100,10 @@ class Deicon
 
         for($row = 0; $row < $this->rows; $row++) {
             for($col = 0; $col < $this->cols; $col++) {
-                $x1 = ($col + $this->offset) * $this->size;
+                $x1 = ($col + $this->offset + $this->padding) * $this->size;
                 $x2 = $x1 + $this->size + mt_rand(-1, 1);
                 //if($this->size > 3) $x2 += mt_rand(-1, 1);
-                $y1 = ($row + $this->offset) * $this->size;
+                $y1 = ($row + $this->offset + $this->padding) * $this->size;
                 $y2 = $y1 + $this->size + mt_rand(-1, 1);
                 //if($this->size > 3) $y2 += mt_rand(-1, 1);
                 $color = $this->palette[$i];
@@ -150,5 +152,11 @@ class Deicon
         $this->offset = $offset;
         $this->width += $this->offset * $this->size;
         $this->height += $this->offset * $this->size;
+    }
+
+    public function setPadding($padding = 1) {
+        $this->padding = $padding;
+        $this->width += $this->padding * 2 * $this->size;
+        $this->height += $this->padding * 2 * $this->size;
     }
 }
