@@ -1,11 +1,14 @@
 <?php
 declare(strict_types=1);
 
-namespace deidee;
+namespace deidee\heticoon;
+
+//require_once dirname(__FILE__, 2) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
 use Imagick;
 use ImagickDraw;
 use ImagickPixel;
+use deidee\Dedate;
 
 class Deicon
 {
@@ -129,6 +132,8 @@ class Deicon
         for($i = 0; $i < $this->blocks; $i ++) {
             $this->palette[] = $this->deJade();
         }
+
+        //$dedate = new \deidee\Dedate\Dedate;
 
         // Pink for October.
         if(idate('m') === 10) {

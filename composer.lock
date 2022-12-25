@@ -4,8 +4,19 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7580e80944c92dd8b899de0932ecb943",
-    "packages": [],
+    "content-hash": "2b06c6360fc0a6da02722c2379669531",
+    "packages": [
+        {
+            "name": "deidee/dedate",
+            "version": "v0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/deidee/dedate",
+                "reference": "main"
+            },
+            "type": "library"
+        }
+    ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",

@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace deidee;
+require_once dirname(__FILE__, 2) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
-require_once 'class.deicon.php';
+use deidee\heticoon\Deicon;
 
 $im = new Deicon([/*'height' => 960, 'width' => 960, */'type' => 'png']);
 if(isset($_GET['save'])) $im->save();
