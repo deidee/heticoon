@@ -4,17 +4,44 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2b06c6360fc0a6da02722c2379669531",
+    "content-hash": "6f0dc4acd3d319e84b3e14eeaae3dc18",
     "packages": [
         {
             "name": "deidee/dedate",
             "version": "v0.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/deidee/dedate",
-                "reference": "main"
+                "url": "https://github.com/deidee/dedate.git",
+                "reference": "45b1d5f279d2880b9df1d71d6d4bd6b008010da0"
             },
-            "type": "library"
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/deidee/dedate/zipball/45b1d5f279d2880b9df1d71d6d4bd6b008010da0",
+                "reference": "45b1d5f279d2880b9df1d71d6d4bd6b008010da0",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "deidee\\Dedate\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "proprietary"
+            ],
+            "authors": [
+                {
+                    "name": "ACJ",
+                    "email": "gitlab@acjs.net"
+                }
+            ],
+            "description": "Een bibliotheek om te checken of een datum op een bepaalde speciale dag valt.",
+            "support": {
+                "issues": "https://github.com/deidee/dedate/issues",
+                "source": "https://github.com/deidee/dedate/tree/v0.1"
+            },
+            "time": "2022-12-25T10:44:11+00:00"
         }
     ],
     "packages-dev": [],

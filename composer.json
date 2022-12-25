@@ -14,22 +14,8 @@
             "email": "gitlab@acjs.net"
         }
     ],
-    "repositories": {
-        "deidee/dedate": {
-            "type": "package",
-            "package": {
-                "name": "deidee/dedate",
-                "version": "v0.1",
-                "source": {
-                    "url": "https://github.com/deidee/dedate",
-                    "type": "git",
-                    "reference": "main"
-                }
-            }
-        }
-    },
     "require": {
         "ext-imagick": "*",
-        "deidee/dedate": "v0.1"
+        "deidee/dedate": "^0.1.0"
     }
 }

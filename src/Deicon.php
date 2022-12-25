@@ -90,6 +90,24 @@ class Deicon
         return "rgb($r, $g, $b)";
     }
 
+    public function xmas(): string
+    {
+        if(mt_rand(1, 10) > 2)
+        {
+            $r = mt_rand(0, 63);
+            $g = mt_rand(63, 127);
+            $b = mt_rand(0, 63);
+        }
+        else
+        {
+            $r = mt_rand(127, 255);
+            $g = mt_rand(0, 63);
+            $b = mt_rand(0, 0);
+        }
+
+        return "rgb($r, $g, $b)";
+    }
+
     public function draw() {
         // This is where the magick happens.
         $this->im = new Imagick();
@@ -129,11 +147,17 @@ class Deicon
     }
 
     public function populate() {
-        for($i = 0; $i < $this->blocks; $i ++) {
-            $this->palette[] = $this->deJade();
-        }
+        $dedate = new Dedate\Dedate;
 
-        //$dedate = new \deidee\Dedate\Dedate;
+        if($dedate->isChristmas()) {
+            for($i = 0; $i < $this->blocks; $i ++) {
+                $this->palette[] = $this->xmas();
+            }
+        } else {
+            for($i = 0; $i < $this->blocks; $i ++) {
+                $this->palette[] = $this->deJade();
+            }
+        }
 
         // Pink for October.
         if(idate('m') === 10) {
