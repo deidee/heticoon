@@ -16,6 +16,6 @@
     ],
     "require": {
         "ext-imagick": "*",
-        "deidee/dedate": "^0.3.0"
+        "deidee/dedate": "*"
     }
 }
