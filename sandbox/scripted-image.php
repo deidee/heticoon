@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace deidee;
+require_once dirname(__FILE__, 2) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
-require_once '../src/class.deicon.php';
+use deidee\heticoon\Deicon;
 
 $accepted_vars = ['cols' => 16, 'rows' => 16, 'data' => []];
 $settings = array_intersect_key($_GET, $accepted_vars);
