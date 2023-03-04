@@ -15,6 +15,8 @@ class Deicon
     private $im;
     private $cols = 16;
     private $rows = 16;
+    private $x = 0;
+    private $y = 0;
     private $height = 384;
     private $width = 384;
     private $size = 24;
@@ -121,10 +123,10 @@ class Deicon
 
         for($row = 0; $row < $this->rows; $row++) {
             for($col = 0; $col < $this->cols; $col++) {
-                $x1 = ($col + $this->offset + $this->padding) * $this->size;
+                $x1 = (($col + $this->offset + $this->padding) * $this->size) + $this->x;
                 $x2 = $x1 + $this->size + mt_rand(-1, 1);
                 //if($this->size > 3) $x2 += mt_rand(-1, 1);
-                $y1 = ($row + $this->offset + $this->padding) * $this->size;
+                $y1 = (($row + $this->offset + $this->padding) * $this->size) + $this->y;
                 $y2 = $y1 + $this->size + mt_rand(-1, 1);
                 //if($this->size > 3) $y2 += mt_rand(-1, 1);
                 $color = $this->palette[$i];
