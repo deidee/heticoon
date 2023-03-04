@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 require_once dirname(__FILE__, 2) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
+$scaler = !empty($_POST['size']) ? intval($_POST['size']) : 8;
+
 use deidee\heticoon\Deicon;
 
 ?>
@@ -18,6 +20,7 @@ use deidee\heticoon\Deicon;
 <body id="top">
 <form action="<?= $_SERVER['REQUEST_URI'] ?>" method="post" enctype="multipart/form-data">
     <div><input name="source" type="file"></div>
+    <div><label>Size: <input name="size" type="number" min="1" max="128" value="<?= $scaler ?>"></label></div>
     <div><button type="submit">Doe</button></div>
 </form>
 <?php
@@ -53,16 +56,14 @@ if(strtoupper($_SERVER['REQUEST_METHOD']) === 'POST') {
             $ita->syncIterator(); /* Sync the iterator, this is important to do on each iteration */
         }
 
-        $scaler = 8;
-
         $ico = new Deicon(['height' => $height * $scaler, 'width' => $width * $scaler, 'size' => $scaler, 'type' => 'png', 'data' => $data]);
         $src = $ico->getDataURI();
 
         echo '<img alt="" src="' . $src . '">';
 
-        echo '<pre>';
-        echo var_dump($data);
-        echo '</pre>';
+        //echo '<pre>';
+        //echo var_dump($data);
+        //echo '</pre>';
     } else {
         echo '<p>Geen bronbestand gevonden.</p>';
     }
