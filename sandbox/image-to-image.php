@@ -8,6 +8,8 @@ $scaler = !empty($_POST['size']) ? intval($_POST['size']) : 8;
 $offset = !empty($_POST['offset']) ? intval($_POST['offset']) : 1;
 $x = !empty($_POST['x']) ? intval($_POST['x']) : 0;
 $y = !empty($_POST['y']) ? intval($_POST['y']) : 0;
+$w = !empty($_POST['width']) ? intval($_POST['width']) : '';
+$h = !empty($_POST['height']) ? intval($_POST['height']) : '';
 
 use deidee\heticoon\Deicon;
 
@@ -26,6 +28,8 @@ use deidee\heticoon\Deicon;
     <div><label>Size: <input name="size" type="number" min="1" max="128" value="<?= $scaler ?>"></label></div>
     <div><label>X: <input name="x" type="number" min="0" max="128" value="<?= $x ?>"></label></div>
     <div><label>Y: <input name="y" type="number" min="0" max="128" value="<?= $y ?>"></label></div>
+    <div><label>Width: <input name="width" type="number" min="0" max="4096" value="<?= $w ?>"></label></div>
+    <div><label>Height: <input name="height" type="number" min="0" max="4096" value="<?= $h ?>"></label></div>
     <div><button type="submit">Doe</button></div>
 </form>
 <?php
@@ -62,7 +66,7 @@ if(strtoupper($_SERVER['REQUEST_METHOD']) === 'POST') {
         }
 
         $ico = new Deicon([
-            'height' => $height * $scaler, 'width' => $width * $scaler,
+            'height' => $h ?? $height * $scaler, 'width' => $w ?? $width * $scaler,
             'x' => $x, 'y' => $y,
             'size' => $scaler, 'type' => 'png', 'data' => $data]);
 

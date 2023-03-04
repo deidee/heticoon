@@ -55,8 +55,8 @@ class Deicon
             endforeach;
         endif;
 
-        $this->height = $this->rows * $this->size;
-        $this->width = $this->cols * $this->size;
+        if(empty($this->height)) $this->height = $this->rows * $this->size;
+        if(empty($this->width)) $this->width = $this->cols * $this->size;
         $this->blocks = $this->rows * $this->cols;
         $this->dataSet = $this->data;
 
