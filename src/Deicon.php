@@ -146,6 +146,12 @@ class Deicon
         return $this->blocks;
     }
 
+    public function getDataURI() {
+        $this->draw();
+
+        return 'data:' . $this->im->getImageMimeType() . ';base64,' . base64_encode($this->im->getImageBlob());
+    }
+
     public function populate() {
         $dedate = new Dedate\Dedate;
 

@@ -1,3 +1,12 @@
+<?php
+
+declare(strict_types=1);
+
+require_once dirname(__FILE__, 2) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+
+use deidee\heticoon\Deicon;
+
+?>
 <!doctype html>
 <html dir="ltr" lang="nl">
 <head>
@@ -21,6 +30,8 @@ if(strtoupper($_SERVER['REQUEST_METHOD']) === 'POST') {
         $img = new Imagick();
         $file = fopen($_FILES['source']['tmp_name'], 'rb');
         $img->readImageFile($file);
+        $height = $img->getImageHeight();
+        $width = $img->getImageWidth();
         $ita = $img->getPixelIterator();
         $data = [];
         $y = 0;
@@ -41,6 +52,13 @@ if(strtoupper($_SERVER['REQUEST_METHOD']) === 'POST') {
             $y++;
             $ita->syncIterator(); /* Sync the iterator, this is important to do on each iteration */
         }
+
+        $scaler = 8;
+
+        $ico = new Deicon(['height' => $height * $scaler, 'width' => $width * $scaler, 'size' => $scaler, 'type' => 'png', 'data' => $data]);
+        $src = $ico->getDataURI();
+
+        echo '<img alt="" src="' . $src . '">';
 
         echo '<pre>';
         echo var_dump($data);
