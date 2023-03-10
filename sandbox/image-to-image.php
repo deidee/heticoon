@@ -47,6 +47,8 @@ if(strtoupper($_SERVER['REQUEST_METHOD']) === 'POST') {
         $ita = $img->getPixelIterator();
         $data = [];
         $l = 0;
+        $txt = '';
+        $ones = 0;
 
         foreach ($ita as $row => $pixels) { /* Loop through pixel rows */
             $data[$l] = [];
@@ -57,12 +59,16 @@ if(strtoupper($_SERVER['REQUEST_METHOD']) === 'POST') {
                 // Check if white and/or transparent.
                 if(empty($c['a']) OR ($c['r'] === 255 && $c['g'] === 255) && $c['b'] === 255) {
                     $data[$l][] = 0;
+                    $txt .= strval(0);
                 } else {
                     $data[$l][] = 1;
+                    $txt .= strval(1);
+                    $ones++;
                 }
             }
             $l++;
             $ita->syncIterator(); /* Sync the iterator, this is important to do on each iteration */
+            $txt .= PHP_EOL;
         }
 
         $ico = new Deicon([
@@ -73,6 +79,9 @@ if(strtoupper($_SERVER['REQUEST_METHOD']) === 'POST') {
         $src = $ico->getDataURI();
 
         echo '<img alt="" src="' . $src . '">';
+        echo '<pre>' , $txt , '</pre>';
+        echo '<pre style="overflow: auto">' , json_encode($data) , '</pre>';
+        echo '<div>Ones: ' . $ones . '</div>';
 
         //echo '<pre>';
         //echo var_dump($data);

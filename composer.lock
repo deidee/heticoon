@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5cb67d202b8263017b7f3800e81deb29",
+    "content-hash": "10032e0a4366a936f6346d461c628544",
     "packages": [
         {
             "name": "deidee/dedate",
@@ -51,7 +51,8 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "ext-imagick": "*"
+        "ext-imagick": "*",
+        "ext-json": "*"
     },
     "platform-dev": [],
     "plugin-api-version": "2.3.0"
