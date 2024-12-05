@@ -14,8 +14,18 @@ $size = !empty($_GET['size']) ? intval($_GET['size']) : 24;
 
         * {
             border: 0;
+            font-size: 1em;
             margin: 0;
             padding: 0;
+        }
+
+        html {
+            font: 100%/1.5 sans-serif;
+        }
+
+        input[type=checkbox] {
+            appearance: none;
+            vertical-align: bottom;
         }
 
         input[type=checkbox]::after {
@@ -33,7 +43,9 @@ $size = !empty($_GET['size']) ? intval($_GET['size']) : 24;
             background: black;
             display: inline-block;
             height: 1.5rem;
+            margin: 1px;
             position: relative;
+            vertical-align: bottom;
             width: 1.5rem;
         }
 

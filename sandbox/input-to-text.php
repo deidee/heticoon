@@ -5,6 +5,7 @@ namespace deidee;
 
 define('DEFAULT_COLS', 16);
 define('DEFAULT_ROWS', 16);
+define('DEFAULT_SIZE', 24);
 define('DEFAULT_DATA', [
     [0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0],
@@ -26,6 +27,7 @@ define('DEFAULT_DATA', [
 
 $cols = !empty($_GET['cols']) ? intval($_GET['cols']) : DEFAULT_COLS;
 $rows = !empty($_GET['rows']) ? intval($_GET['rows']) : DEFAULT_ROWS;
+$size = !empty($_GET['size']) ? intval($_GET['size']) : DEFAULT_SIZE;
 
 $empty_row = array_fill(0, $cols, '0');
 $empty_set = array_fill(0, $rows, $empty_row);
@@ -54,8 +56,9 @@ $cell = 0;
     <div class="row">
         <div class="col">
             <form action="">
-                <label><input name="rows" type="number" min="1" max="256" value="<?= $rows ?>" placeholder="Rijen"></label>
-                <label><input name="cols" type="number" min="1" max="256" value="<?= $cols ?>" placeholder="Kolommen"></label>
+                <label>Rijen: <input name="rows" type="number" min="1" max="256" value="<?= $rows ?>" placeholder="Rijen"></label>
+                <label>Kolommen: <input name="cols" type="number" min="1" max="256" value="<?= $cols ?>" placeholder="Kolommen"></label>
+                <label>Grootte: <input name="size" type="number" min="1" max="256" value="<?= $size ?>" placeholder="Grootte"></label>
                 <table>
                     <tbody>
                     <?php for($r = 0; $r < $rows; $r++): ?>

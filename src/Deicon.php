@@ -17,8 +17,8 @@ class Deicon
     private $rows = 16;
     private $x = 0;
     private $y = 0;
-    private $height = 384;
-    private $width = 384;
+    private $height; // Default should compute to 384.
+    private $width; // Default should compute to 384.
     private $size = 24;
     private $type = 'png';
     private $offset = 0;
