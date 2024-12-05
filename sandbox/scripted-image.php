@@ -5,7 +5,7 @@ require_once dirname(__FILE__, 2) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_S
 
 use deidee\heticoon\Deicon;
 
-$accepted_vars = ['cols' => 16, 'rows' => 16, 'size' => 24, 'type' => 'jpg'];
+$accepted_vars = ['cols' => 16, 'rows' => 16, 'size' => 24, 'type' => 'jpg', 'padding' => 0];
 
 if(!empty($_GET['data'])) $accepted_vars['data'] = $_GET['data'];
 
