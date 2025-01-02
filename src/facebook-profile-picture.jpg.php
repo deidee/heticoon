@@ -6,6 +6,7 @@ require_once dirname(__FILE__, 2) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_S
 use deidee\heticoon\Deicon;
 
 $settings = [/*'height' => 960, 'width' => 960,*/ 'size' => 48];
+if(!empty($_GET['data'])) $settings['data'] = $_GET['data'];
 
 $im = new Deicon($settings);
 $im->setOffset(1);
