@@ -12,6 +12,7 @@ use deidee\Dedate;
 
 class Deicon
 {
+    const COLOR_WHITE = '#ffffff';
     private $im;
     private $cols = 16;
     private $rows = 16;
@@ -57,11 +58,6 @@ class Deicon
 
         if(empty($this->height)) $this->height = ($this->rows + $this->padding) * $this->size;
         if(empty($this->width)) $this->width = ($this->cols + $this->padding) * $this->size;
-        $this->blocks = $this->rows * $this->cols;
-        $this->dataSet = $this->data;
-
-        // Fill the palette with colors.
-        $this->populate();
     }
 
     public function __set($name, $value)
@@ -110,10 +106,21 @@ class Deicon
         return "rgb($r, $g, $b)";
     }
 
+    /**
+     * @throws \ImagickException
+     * @throws \ImagickDrawException
+     * @throws \ImagickPixelException
+     */
     public function draw() {
+        $this->blocks = $this->rows * $this->cols;
+        $this->dataSet = $this->data;
+
+        // Fill the palette with colors.
+        $this->populate();
+
         // This is where the magick happens.
         $this->im = new Imagick();
-        $this->im->newImage($this->width, $this->height, new ImagickPixel('#ffffff'));
+        $this->im->newImage($this->width, $this->height, new ImagickPixel(self::COLOR_WHITE));
         $this->im->setImageFormat($this->type);
 
         $draw = new ImagickDraw();
@@ -185,6 +192,10 @@ class Deicon
         file_put_contents($target, $this->im->getImageBlob());
     }
 
+    public function setColumnCount($cols = 16) {
+        $this->cols = $cols;
+    }
+
     public function setOffset($offset = 1) {
         $this->offset = $offset;
         $this->width += $this->offset * $this->size;
@@ -195,5 +206,17 @@ class Deicon
         $this->padding = $padding;
         $this->width += $this->padding * 2 * $this->size;
         $this->height += $this->padding * 2 * $this->size;
+    }
+
+    public function setRowCount($rows = 16) {
+        $this->rows = $rows;
+    }
+
+    public function setX($x = 0) {
+        $this->x = $x;
+    }
+
+    public function setY($y= 0) {
+        $this->y = $y;
     }
 }
