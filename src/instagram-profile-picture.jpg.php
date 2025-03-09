@@ -11,5 +11,7 @@ if(!empty($_GET['data'])) $settings['data'] = $_GET['data'];
 $im = new Deicon($settings);
 $im->setOffset(1);
 $im->setPadding(2);
+//$im->setColumnCount(17);
+//$im->setX(-48);
 if(isset($_GET['save'])) $im->save();
 echo $im;

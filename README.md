@@ -9,6 +9,6 @@ Iconen van [deidee](https://deidee.nl/) worden op de server gegenereerd, maar bi
 - [x] het aantal rijen en kolommen kunnen aanpassen;
 - [ ] bij het aan- of uitzetten van een blokje de _favicon_ automatisch updaten;
 - [ ] bij het aan- of uitzetten van een blokje de URL automatisch updaten;
-- [ ] actieve blokjes voorzien van de afwijking rechts en onder zoals dat bij het logo ook gebeurt;
+- [x] actieve blokjes voorzien van de afwijking rechts en onder zoals dat bij het logo ook gebeurt;
 - [ ] link kunnen delen naar specifiek icoon;
 - [ ] eindformaat in kunnen stellen.
