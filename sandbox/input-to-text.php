@@ -75,6 +75,7 @@ $cell = 0;
             <ul>
                 <li><a href="../src/facebook-profile-picture.jpg.php?<?= http_build_query(['data' => $_GET['data'] ?? []]) ?>">Facebook profile picture</a></li>
                 <li><a href="../src/instagram-profile-picture.jpg.php?<?= http_build_query(['data' => $_GET['data'] ?? []]) ?>">Instagram profile picture</a></li>
+                <li><a href="../src/instagram-post.png.php?<?= http_build_query(['data' => $_GET['data'] ?? []]) ?>">Instagram post</a></li>
                 <li><a href="../src/linkedin-profile-picture.jpg.php?<?= http_build_query(['data' => $_GET['data'] ?? []]) ?>">LinkedIn profile picture</a></li>
                 <li><a href="../src/pinterest-profile-picture.png.php?<?= http_build_query(['data' => $_GET['data'] ?? []]) ?>">Pinterest profile picture</a></li>
                 <li><a href="../src/x-profile-picture.png.php?<?= http_build_query(['data' => $_GET['data'] ?? []]) ?>">X profile picture</a></li>
