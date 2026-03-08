@@ -1,0 +1,959 @@
+<!doctype html>
+<html dir="ltr" lang="nl">
+<head>
+    <meta charset="utf-8">
+    <meta name="robots" content="none">
+    <title>hetIcoon — defont editor</title>
+    <link rel="author" href="https://alexanderchristiaanjacob.com/">
+    <link rel="shortcut icon" href="https://deidee.nl/favicon.ico">
+    <link rel="stylesheet" href="https://grid.sexy/css/grid.min.css">
+    <link rel="stylesheet" href="https://hetcdn.nl/deidee/css/destijl.min.css">
+    <style>
+        :root{
+            --cell-size: 28px;
+            --grid-gap: 1px;
+            --grid-line: #d6d6d6;
+            --cell-off: #ffffff;
+            --cell-on: #179b63;
+            --cell-hover: #dff5ea;
+            --panel-bg: #f7f7f7;
+            --border: rgba(0,0,0,.12);
+            --text: #111111;
+            --muted: #666666;
+            --accent: #111111;
+        }
+
+        *{
+            box-sizing: border-box;
+        }
+
+        body{
+            margin: 0;
+            color: var(--text);
+        }
+
+        main{
+            padding: 1rem 0 2rem;
+        }
+
+        .editor-panel{
+            background: var(--panel-bg);
+            border: 1px solid rgba(0,0,0,.08);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .editor-panel h1,
+        .editor-panel h2{
+            margin: 0 0 1rem;
+            line-height: 1.2;
+        }
+
+        .editor-panel h1{
+            font-size: 1.3rem;
+        }
+
+        .editor-panel h2{
+            font-size: 1rem;
+        }
+
+        .controls-row{
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: .5rem;
+            margin-bottom: .75rem;
+        }
+
+        .controls-row:last-child{
+            margin-bottom: 0;
+        }
+
+        .editor-panel label{
+            font-weight: 700;
+            color: var(--text);
+            margin-right: .15rem;
+        }
+
+        .editor-panel input[type="text"],
+        .editor-panel input[type="number"],
+        .editor-panel input[type="file"],
+        .editor-panel textarea,
+        .editor-panel select{
+            appearance: none;
+            -webkit-appearance: none;
+            font: inherit !important;
+            color: #111 !important;
+            background: #fff !important;
+            border: 1px solid rgba(0,0,0,.22) !important;
+            padding: .55rem .75rem !important;
+            border-radius: 0 !important;
+            min-height: 2.6rem;
+            box-shadow: none !important;
+        }
+
+        .editor-panel input[type="file"]{
+            padding: .45rem .55rem !important;
+        }
+
+        .editor-panel button{
+            appearance: none;
+            -webkit-appearance: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font: inherit !important;
+            font-weight: 700 !important;
+            color: #111 !important;
+            background: #fff !important;
+            border: 1px solid rgba(0,0,0,.22) !important;
+            padding: .55rem .9rem !important;
+            min-height: 2.6rem;
+            border-radius: 0 !important;
+            cursor: pointer;
+            box-shadow: none !important;
+            text-shadow: none !important;
+        }
+
+        .editor-panel button:hover{
+            background: #f0f0f0 !important;
+        }
+
+        .editor-panel button.is-active{
+            background: #111 !important;
+            color: #fff !important;
+            border-color: #111 !important;
+        }
+
+        .editor-panel button.is-danger{
+            background: #8d1f1f !important;
+            color: #fff !important;
+            border-color: #8d1f1f !important;
+        }
+
+        .editor-panel button.is-good{
+            background: #0f7a4d !important;
+            color: #fff !important;
+            border-color: #0f7a4d !important;
+        }
+
+        .editor-panel textarea{
+            width: 100%;
+            min-height: 10rem;
+            font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+            resize: vertical;
+        }
+
+        .small{
+            font-size: .92rem;
+        }
+
+        .muted{
+            color: var(--muted);
+        }
+
+        .status-ok{
+            color: #0f7a4d;
+            font-weight: 700;
+        }
+
+        .status-warn{
+            color: #8a5b00;
+            font-weight: 700;
+        }
+
+        .status-bad{
+            color: #8d1f1f;
+            font-weight: 700;
+        }
+
+        .editor-wrap{
+            overflow: auto;
+            padding: .5rem;
+            border: 1px solid rgba(0,0,0,.08);
+            background: #fff;
+        }
+
+        #grid{
+            display: grid;
+            gap: var(--grid-gap);
+            background: var(--grid-line);
+            width: max-content;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .cell{
+            width: var(--cell-size);
+            height: var(--cell-size);
+            background: var(--cell-off);
+            border: 1px solid rgba(0,0,0,.12);
+        }
+
+        .cell.is-on{
+            background: var(--cell-on);
+            border-color: rgba(0,0,0,.02);
+        }
+
+        .cell.is-hover{
+            background: var(--cell-hover);
+        }
+
+        .stack{
+            display: grid;
+            gap: .5rem;
+        }
+
+        .w-100{
+            width: 100%;
+        }
+    </style>
+</head>
+<body id="top">
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col col-12 col-md-4">
+                <section class="editor-panel">
+                    <h1>hetIcoon</h1>
+
+                    <div class="controls-row">
+                        <label for="columns">Kolommen</label>
+                        <input id="columns" type="number" min="1" max="256" value="16" style="width:6rem">
+
+                        <label for="rows">Rijen</label>
+                        <input id="rows" type="number" min="1" max="256" value="16" style="width:6rem">
+
+                        <button id="resizeBtn" type="button">Nieuw raster</button>
+                    </div>
+
+                    <div class="controls-row">
+                        <label for="cellSize">Celgrootte</label>
+                        <input id="cellSize" type="number" min="8" max="80" value="28" style="width:6rem">
+                    </div>
+
+                    <div class="controls-row">
+                        <button id="paintBtn" type="button" class="is-active">Tekenen</button>
+                        <button id="eraseBtn" type="button">Wissen</button>
+                        <button id="toggleBtn" type="button">Omschakelen</button>
+                    </div>
+
+                    <div class="controls-row">
+                        <button id="clearBtn" type="button">Leegmaken</button>
+                        <button id="fillBtn" type="button">Volmaken</button>
+                        <button id="invertBtn" type="button">Inverteren</button>
+                    </div>
+                </section>
+
+                <section class="editor-panel">
+                    <h2>defont bron</h2>
+
+                    <div class="stack">
+                        <div class="controls-row">
+                            <input id="fontFile" type="file" accept=".json,application/json" class="w-100">
+                        </div>
+
+                        <div class="controls-row">
+                            <button id="reloadFontBtn" type="button">Herlaad JSON</button>
+                        </div>
+
+                        <div id="fontStatus" class="small muted">
+                            Nog geen defont JSON geladen.
+                        </div>
+                    </div>
+                </section>
+
+                <section class="editor-panel">
+                    <h2>Tekst / letters</h2>
+
+                    <div class="controls-row">
+                        <label for="textInput">Tekst</label>
+                        <input id="textInput" type="text" value="de" maxlength="128" class="w-100">
+                    </div>
+
+                    <div class="controls-row">
+                        <label for="stampX">X</label>
+                        <input id="stampX" type="number" min="0" value="2" style="width:6rem">
+
+                        <label for="stampY">Y</label>
+                        <input id="stampY" type="number" min="0" value="4" style="width:6rem">
+
+                        <button id="stampBtn" type="button" class="is-good">Plaats tekst</button>
+                    </div>
+
+                    <div class="controls-row">
+                        <button id="centerBtn" type="button">Centreer tekst</button>
+                    </div>
+
+                    <p class="small muted">
+                        Bij geladen <strong>defont</strong>-data gebruikt de editor die glyphs.
+                        Zonder JSON valt hij terug op een eenvoudige ingebouwde bitmapset.
+                    </p>
+                </section>
+
+                <section class="editor-panel">
+                    <h2>Uitvoer</h2>
+
+                    <div class="controls-row">
+                        <button id="export2DBtn" type="button">Exporteer 2D JSON</button>
+                        <button id="exportFlatBtn" type="button">Exporteer flat array</button>
+                        <button id="copyBtn" type="button">Kopieer</button>
+                    </div>
+
+                    <textarea id="output" spellcheck="false"></textarea>
+
+                    <p class="small muted">
+                        Flat array exporteert de huidige tekening rij-voor-rij.
+                    </p>
+                </section>
+            </div>
+
+            <div class="col col-12 col-md-8">
+                <section class="editor-panel">
+                    <div class="controls-row">
+                        <strong>Raster</strong>
+                        <span id="status" class="small muted"></span>
+                    </div>
+                    <div class="editor-wrap">
+                        <div id="grid" aria-label="icoonraster"></div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    (function () {
+        'use strict';
+
+        const gridEl = document.getElementById('grid');
+        const outputEl = document.getElementById('output');
+        const statusEl = document.getElementById('status');
+        const fontStatusEl = document.getElementById('fontStatus');
+
+        const columnsEl = document.getElementById('columns');
+        const rowsEl = document.getElementById('rows');
+        const cellSizeEl = document.getElementById('cellSize');
+        const textInputEl = document.getElementById('textInput');
+        const stampXEl = document.getElementById('stampX');
+        const stampYEl = document.getElementById('stampY');
+        const fontFileEl = document.getElementById('fontFile');
+
+        const paintBtn = document.getElementById('paintBtn');
+        const eraseBtn = document.getElementById('eraseBtn');
+        const toggleBtn = document.getElementById('toggleBtn');
+
+        const resizeBtn = document.getElementById('resizeBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const fillBtn = document.getElementById('fillBtn');
+        const invertBtn = document.getElementById('invertBtn');
+
+        const stampBtn = document.getElementById('stampBtn');
+        const centerBtn = document.getElementById('centerBtn');
+        const export2DBtn = document.getElementById('export2DBtn');
+        const exportFlatBtn = document.getElementById('exportFlatBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const reloadFontBtn = document.getElementById('reloadFontBtn');
+
+        let columns = 16;
+        let rows = 16;
+        let grid = [];
+        let cells = [];
+        let mode = 'paint';
+        let isPointerDown = false;
+        let lastPaintKey = null;
+
+        let defontMap = new Map();
+        let defontMeta = {};
+        let defontSource = '';
+
+        const FALLBACK_5X7 = {
+            'A': ['01110','10001','10001','11111','10001','10001','10001'],
+            'B': ['11110','10001','10001','11110','10001','10001','11110'],
+            'C': ['01111','10000','10000','10000','10000','10000','01111'],
+            'D': ['11110','10001','10001','10001','10001','10001','11110'],
+            'E': ['11111','10000','10000','11110','10000','10000','11111'],
+            'F': ['11111','10000','10000','11110','10000','10000','10000'],
+            'G': ['01111','10000','10000','10011','10001','10001','01110'],
+            'H': ['10001','10001','10001','11111','10001','10001','10001'],
+            'I': ['11111','00100','00100','00100','00100','00100','11111'],
+            'J': ['00111','00010','00010','00010','00010','10010','01100'],
+            'K': ['10001','10010','10100','11000','10100','10010','10001'],
+            'L': ['10000','10000','10000','10000','10000','10000','11111'],
+            'M': ['10001','11011','10101','10101','10001','10001','10001'],
+            'N': ['10001','11001','10101','10011','10001','10001','10001'],
+            'O': ['01110','10001','10001','10001','10001','10001','01110'],
+            'P': ['11110','10001','10001','11110','10000','10000','10000'],
+            'Q': ['01110','10001','10001','10001','10101','10010','01101'],
+            'R': ['11110','10001','10001','11110','10100','10010','10001'],
+            'S': ['01111','10000','10000','01110','00001','00001','11110'],
+            'T': ['11111','00100','00100','00100','00100','00100','00100'],
+            'U': ['10001','10001','10001','10001','10001','10001','01110'],
+            'V': ['10001','10001','10001','10001','10001','01010','00100'],
+            'W': ['10001','10001','10001','10101','10101','10101','01010'],
+            'X': ['10001','10001','01010','00100','01010','10001','10001'],
+            'Y': ['10001','10001','01010','00100','00100','00100','00100'],
+            'Z': ['11111','00001','00010','00100','01000','10000','11111'],
+            '0': ['01110','10001','10011','10101','11001','10001','01110'],
+            '1': ['00100','01100','00100','00100','00100','00100','01110'],
+            '2': ['01110','10001','00001','00010','00100','01000','11111'],
+            '3': ['11110','00001','00001','01110','00001','00001','11110'],
+            '4': ['00010','00110','01010','10010','11111','00010','00010'],
+            '5': ['11111','10000','10000','11110','00001','00001','11110'],
+            '6': ['01110','10000','10000','11110','10001','10001','01110'],
+            '7': ['11111','00001','00010','00100','01000','01000','01000'],
+            '8': ['01110','10001','10001','01110','10001','10001','01110'],
+            '9': ['01110','10001','10001','01111','00001','00001','01110'],
+            '.': ['00000','00000','00000','00000','00000','00110','00110'],
+            ',': ['00000','00000','00000','00000','00110','00110','00100'],
+            '-': ['00000','00000','00000','01110','00000','00000','00000'],
+            '_': ['00000','00000','00000','00000','00000','00000','11111'],
+            '!': ['00100','00100','00100','00100','00100','00000','00100'],
+            '?': ['01110','10001','00001','00010','00100','00000','00100'],
+            ' ': ['000','000','000','000','000','000','000']
+        };
+
+        function createEmptyGrid(width, height) {
+            return Array.from({ length: height }, () => Array(width).fill(0));
+        }
+
+        function setCellSize(size) {
+            document.documentElement.style.setProperty('--cell-size', `${size}px`);
+        }
+
+        function setMode(nextMode) {
+            mode = nextMode;
+            paintBtn.classList.toggle('is-active', mode === 'paint');
+            eraseBtn.classList.toggle('is-active', mode === 'erase');
+            toggleBtn.classList.toggle('is-active', mode === 'toggle');
+        }
+
+        function updateStatus() {
+            let active = 0;
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < columns; x++) {
+                    active += grid[y][x] ? 1 : 0;
+                }
+            }
+            statusEl.textContent = `${columns} × ${rows} — ${active} actieve vakjes`;
+        }
+
+        function setOutputText(text) {
+            outputEl.value = text;
+        }
+
+        function export2DJson() {
+            setOutputText(JSON.stringify(grid, null, 2));
+        }
+
+        function exportFlatJson() {
+            const flat = [];
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < columns; x++) {
+                    flat.push(grid[y][x] ? 1 : 0);
+                }
+            }
+            setOutputText(JSON.stringify(flat, null, 2));
+        }
+
+        function updateDefaultOutput() {
+            export2DJson();
+            updateStatus();
+        }
+
+        function renderGrid() {
+            gridEl.innerHTML = '';
+            gridEl.style.gridTemplateColumns = `repeat(${columns}, var(--cell-size))`;
+            cells = [];
+
+            for (let y = 0; y < rows; y++) {
+                const row = [];
+                for (let x = 0; x < columns; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell' + (grid[y][x] ? ' is-on' : '');
+                    cell.dataset.x = String(x);
+                    cell.dataset.y = String(y);
+                    gridEl.appendChild(cell);
+                    row.push(cell);
+                }
+                cells.push(row);
+            }
+
+            stampXEl.max = String(Math.max(0, columns - 1));
+            stampYEl.max = String(Math.max(0, rows - 1));
+
+            updateDefaultOutput();
+        }
+
+        function applyCellVisual(x, y) {
+            const cell = cells[y] && cells[y][x];
+            if (!cell) return;
+            cell.classList.toggle('is-on', !!grid[y][x]);
+        }
+
+        function setCell(x, y, value) {
+            if (x < 0 || y < 0 || x >= columns || y >= rows) return;
+            grid[y][x] = value ? 1 : 0;
+            applyCellVisual(x, y);
+        }
+
+        function toggleCell(x, y) {
+            if (x < 0 || y < 0 || x >= columns || y >= rows) return;
+            grid[y][x] = grid[y][x] ? 0 : 1;
+            applyCellVisual(x, y);
+        }
+
+        function applyTool(x, y) {
+            const key = `${x},${y}`;
+            if (key === lastPaintKey) return;
+            lastPaintKey = key;
+
+            if (mode === 'paint') {
+                setCell(x, y, 1);
+            } else if (mode === 'erase') {
+                setCell(x, y, 0);
+            } else {
+                toggleCell(x, y);
+            }
+        }
+
+        function getCellFromPointerEvent(event) {
+            let target = event.target;
+            if (!target || !target.classList || !target.classList.contains('cell')) {
+                target = document.elementFromPoint(event.clientX, event.clientY);
+            }
+            if (!target || !target.classList || !target.classList.contains('cell')) {
+                return null;
+            }
+            return {
+                x: Number(target.dataset.x),
+                y: Number(target.dataset.y),
+                el: target
+            };
+        }
+
+        function resizeGrid(newColumns, newRows) {
+            const next = createEmptyGrid(newColumns, newRows);
+            for (let y = 0; y < Math.min(rows, newRows); y++) {
+                for (let x = 0; x < Math.min(columns, newColumns); x++) {
+                    next[y][x] = grid[y][x];
+                }
+            }
+            columns = newColumns;
+            rows = newRows;
+            grid = next;
+            renderGrid();
+        }
+
+        function clearGrid() {
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < columns; x++) {
+                    grid[y][x] = 0;
+                }
+            }
+            renderGrid();
+        }
+
+        function fillGrid() {
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < columns; x++) {
+                    grid[y][x] = 1;
+                }
+            }
+            renderGrid();
+        }
+
+        function invertGrid() {
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < columns; x++) {
+                    grid[y][x] = grid[y][x] ? 0 : 1;
+                }
+            }
+            renderGrid();
+        }
+
+        function matrixFromStringRows(rows) {
+            return rows.map(row => row.split('').map(v => (v === '1' ? 1 : 0)));
+        }
+
+        function normalizeMatrix(matrix) {
+            return matrix.map(row => row.map(v => Number(v) ? 1 : 0));
+        }
+
+        function matrixFromFlatBits(bits, width, height) {
+            const out = [];
+            for (let y = 0; y < height; y++) {
+                const row = [];
+                for (let x = 0; x < width; x++) {
+                    const idx = y * width + x;
+                    row.push(Number(bits[idx]) ? 1 : 0);
+                }
+                out.push(row);
+            }
+            return out;
+        }
+
+        function inferFlatGlyphDimensions(bits, raw, meta) {
+            const len = bits.length;
+            const explicitWidth = Number(raw && raw.width) || Number(raw && raw.columns) || Number(raw && raw.cols) || 0;
+            const explicitHeight = Number(raw && raw.height) || Number(raw && raw.rows) || 0;
+
+            if (explicitWidth > 0 && explicitHeight > 0 && explicitWidth * explicitHeight === len) {
+                return { width: explicitWidth, height: explicitHeight };
+            }
+
+            if (explicitHeight > 0 && len % explicitHeight === 0) {
+                return { width: len / explicitHeight, height: explicitHeight };
+            }
+
+            if (explicitWidth > 0 && len % explicitWidth === 0) {
+                return { width: explicitWidth, height: len / explicitWidth };
+            }
+
+            const metaHeight =
+                Number(meta.glyph_height) ||
+                Number(meta.height) ||
+                Number(meta.rows) ||
+                Number(meta.cell_height) ||
+                9;
+
+            if (len === 0) {
+                return { width: Number(meta.space_width) || 3, height: metaHeight };
+            }
+
+            if (len % metaHeight === 0) {
+                return { width: len / metaHeight, height: metaHeight };
+            }
+
+            for (const candidateHeight of [9, 7, 11, 5, 8]) {
+                if (len % candidateHeight === 0) {
+                    return { width: len / candidateHeight, height: candidateHeight };
+                }
+            }
+
+            const width = Math.ceil(Math.sqrt(len));
+            const height = Math.ceil(len / width);
+            return { width, height };
+        }
+
+        function normalizeGlyph(raw, meta = {}) {
+            if (raw == null) return null;
+
+            if (Array.isArray(raw)) {
+                if (raw.length === 0) {
+                    const h = Number(meta.glyph_height) || Number(meta.height) || Number(meta.rows) || 9;
+                    const w = Number(meta.space_width) || 3;
+                    return createEmptyGrid(w, h);
+                }
+
+                if (typeof raw[0] === 'string') {
+                    return matrixFromStringRows(raw);
+                }
+
+                if (Array.isArray(raw[0])) {
+                    return normalizeMatrix(raw);
+                }
+
+                const dims = inferFlatGlyphDimensions(raw, {}, meta);
+                return matrixFromFlatBits(raw, dims.width, dims.height);
+            }
+
+            if (typeof raw === 'object') {
+                if (Array.isArray(raw.matrix)) {
+                    if (Array.isArray(raw.matrix[0])) {
+                        return normalizeMatrix(raw.matrix);
+                    }
+                    if (typeof raw.matrix[0] === 'string') {
+                        return matrixFromStringRows(raw.matrix);
+                    }
+                }
+
+                if (Array.isArray(raw.rows) && typeof raw.rows[0] === 'string') {
+                    return matrixFromStringRows(raw.rows);
+                }
+
+                if (Array.isArray(raw.bitmap) && typeof raw.bitmap[0] === 'string') {
+                    return matrixFromStringRows(raw.bitmap);
+                }
+
+                if (Array.isArray(raw.pixels) || Array.isArray(raw.bits) || Array.isArray(raw.data)) {
+                    const bits = raw.pixels || raw.bits || raw.data;
+                    const dims = inferFlatGlyphDimensions(bits, raw, meta);
+                    return matrixFromFlatBits(bits, dims.width, dims.height);
+                }
+            }
+
+            return null;
+        }
+
+        function keyToChar(key) {
+            if (key === '.notdef') return null;
+            if (key.length === 1) return key;
+            if (/^\d+$/.test(key)) return String.fromCodePoint(Number(key));
+            if (/^0x[0-9a-f]+$/i.test(key)) return String.fromCodePoint(parseInt(key, 16));
+            if (/^u[0-9a-f]+$/i.test(key)) return String.fromCodePoint(parseInt(key.slice(1), 16));
+            if (/^u\+[0-9a-f]+$/i.test(key)) return String.fromCodePoint(parseInt(key.slice(2), 16));
+            return null;
+        }
+
+        function extractGlyphContainer(data) {
+            if (data && typeof data === 'object') {
+                if (data.glyphs && typeof data.glyphs === 'object') return data.glyphs;
+                if (data.chars && typeof data.chars === 'object') return data.chars;
+                if (data.characters && typeof data.characters === 'object') return data.characters;
+                if (data.data && typeof data.data === 'object') return data.data;
+            }
+            return data;
+        }
+
+        function normalizeDefontDataset(data) {
+            const container = extractGlyphContainer(data);
+            const meta = (data && data.meta) ? data.meta : {};
+            const map = new Map();
+
+            if (!container || typeof container !== 'object') {
+                return { map, meta };
+            }
+
+            for (const [key, value] of Object.entries(container)) {
+                if (['format', 'version', 'generated_at', 'source', 'meta'].includes(key)) continue;
+
+                const ch = keyToChar(key);
+                if (!ch) continue;
+
+                const glyph = normalizeGlyph(value, meta);
+                if (glyph) {
+                    map.set(ch, glyph);
+                }
+            }
+
+            return { map, meta };
+        }
+
+        function getFallbackGlyph(ch) {
+            const exact = FALLBACK_5X7[ch];
+            if (exact) return matrixFromStringRows(exact);
+
+            const upper = FALLBACK_5X7[ch.toUpperCase()];
+            if (upper) return matrixFromStringRows(upper);
+
+            return matrixFromStringRows(FALLBACK_5X7[' ']);
+        }
+
+        function getGlyph(ch) {
+            if (defontMap.has(ch)) return defontMap.get(ch);
+            if (defontMap.has(ch.toUpperCase())) return defontMap.get(ch.toUpperCase());
+            return getFallbackGlyph(ch);
+        }
+
+        function glyphWidth(glyph) {
+            return glyph && glyph[0] ? glyph[0].length : 0;
+        }
+
+        function glyphHeight(glyph) {
+            return glyph ? glyph.length : 0;
+        }
+
+        function stampGlyph(glyph, startX, startY) {
+            for (let y = 0; y < glyph.length; y++) {
+                for (let x = 0; x < glyph[y].length; x++) {
+                    if (glyph[y][x]) {
+                        setCell(startX + x, startY + y, 1);
+                    }
+                }
+            }
+        }
+
+        function measureText(text) {
+            const spacing = 1;
+            let width = 0;
+            let height = 0;
+
+            for (let i = 0; i < text.length; i++) {
+                const glyph = getGlyph(text[i]);
+                width += glyphWidth(glyph);
+                if (i < text.length - 1) width += spacing;
+                height = Math.max(height, glyphHeight(glyph));
+            }
+
+            return { width, height };
+        }
+
+        function stampText(text, startX, startY) {
+            const spacing = 1;
+            let x = startX;
+
+            for (let i = 0; i < text.length; i++) {
+                const glyph = getGlyph(text[i]);
+                stampGlyph(glyph, x, startY);
+                x += glyphWidth(glyph);
+                if (i < text.length - 1) x += spacing;
+            }
+
+            updateDefaultOutput();
+        }
+
+        function centerText() {
+            const text = textInputEl.value || '';
+            const size = measureText(text);
+            const x = Math.max(0, Math.floor((columns - size.width) / 2));
+            const y = Math.max(0, Math.floor((rows - size.height) / 2));
+            stampXEl.value = String(x);
+            stampYEl.value = String(y);
+            stampText(text, x, y);
+        }
+
+        async function copyOutput() {
+            try {
+                await navigator.clipboard.writeText(outputEl.value);
+                copyBtn.textContent = 'Gekopieerd';
+                window.setTimeout(() => {
+                    copyBtn.textContent = 'Kopieer';
+                }, 1000);
+            } catch (error) {
+                outputEl.focus();
+                outputEl.select();
+            }
+        }
+
+        function updateFontStatus(kind, text) {
+            fontStatusEl.className = `small ${kind}`;
+            fontStatusEl.textContent = text;
+        }
+
+        async function loadFontFromObject(data, sourceLabel) {
+            const result = normalizeDefontDataset(data);
+            defontMap = result.map;
+            defontMeta = result.meta || {};
+            defontSource = sourceLabel || '';
+
+            if (defontMap.size > 0) {
+                updateFontStatus('status-ok', `defont geladen: ${defontMap.size} glyphs (${sourceLabel})`);
+            } else {
+                updateFontStatus('status-warn', `JSON geladen, maar geen bruikbare glyphs gevonden (${sourceLabel})`);
+            }
+        }
+
+        async function tryFetchJson(url) {
+            const response = await fetch(url, { cache: 'no-store' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+        }
+
+        async function autoLoadDefont() {
+            const candidates = [
+                'data/chars.json',
+                './data/chars.json',
+                '../data/chars.json',
+                '/data/chars.json'
+            ];
+
+            for (const path of candidates) {
+                try {
+                    const data = await tryFetchJson(path);
+                    await loadFontFromObject(data, path);
+                    return;
+                } catch (error) {
+                    // try next
+                }
+            }
+
+            updateFontStatus('status-warn', 'Geen defont JSON automatisch gevonden; fallback-font actief.');
+        }
+
+        fontFileEl.addEventListener('change', async function () {
+            const file = this.files && this.files[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+                await loadFontFromObject(data, file.name);
+            } catch (error) {
+                updateFontStatus('status-bad', `Kon JSON niet laden: ${error.message}`);
+            }
+        });
+
+        reloadFontBtn.addEventListener('click', autoLoadDefont);
+
+        resizeBtn.addEventListener('click', function () {
+            const newColumns = Math.max(1, parseInt(columnsEl.value, 10) || 16);
+            const newRows = Math.max(1, parseInt(rowsEl.value, 10) || 16);
+            resizeGrid(newColumns, newRows);
+        });
+
+        paintBtn.addEventListener('click', () => setMode('paint'));
+        eraseBtn.addEventListener('click', () => setMode('erase'));
+        toggleBtn.addEventListener('click', () => setMode('toggle'));
+
+        clearBtn.addEventListener('click', clearGrid);
+        fillBtn.addEventListener('click', fillGrid);
+        invertBtn.addEventListener('click', invertGrid);
+
+        stampBtn.addEventListener('click', function () {
+            const text = textInputEl.value || '';
+            const x = Math.max(0, parseInt(stampXEl.value, 10) || 0);
+            const y = Math.max(0, parseInt(stampYEl.value, 10) || 0);
+            stampText(text, x, y);
+        });
+
+        centerBtn.addEventListener('click', centerText);
+
+        export2DBtn.addEventListener('click', export2DJson);
+        exportFlatBtn.addEventListener('click', exportFlatJson);
+        copyBtn.addEventListener('click', copyOutput);
+
+        cellSizeEl.addEventListener('input', function () {
+            const size = Math.max(8, Math.min(80, parseInt(this.value, 10) || 28));
+            setCellSize(size);
+        });
+
+        gridEl.addEventListener('pointerdown', function (event) {
+            const cell = getCellFromPointerEvent(event);
+            if (!cell) return;
+            isPointerDown = true;
+            lastPaintKey = null;
+            applyTool(cell.x, cell.y);
+            updateDefaultOutput();
+            event.preventDefault();
+        });
+
+        gridEl.addEventListener('pointermove', function (event) {
+            const cell = getCellFromPointerEvent(event);
+            if (!cell) return;
+
+            for (const row of cells) {
+                for (const c of row) c.classList.remove('is-hover');
+            }
+            cell.el.classList.add('is-hover');
+
+            if (!isPointerDown) return;
+            applyTool(cell.x, cell.y);
+            updateDefaultOutput();
+            event.preventDefault();
+        });
+
+        gridEl.addEventListener('pointerleave', function () {
+            for (const row of cells) {
+                for (const c of row) c.classList.remove('is-hover');
+            }
+        });
+
+        document.addEventListener('pointerup', function () {
+            isPointerDown = false;
+            lastPaintKey = null;
+        });
+
+        columns = parseInt(columnsEl.value, 10) || 16;
+        rows = parseInt(rowsEl.value, 10) || 16;
+        grid = createEmptyGrid(columns, rows);
+
+        setCellSize(parseInt(cellSizeEl.value, 10) || 28);
+        renderGrid();
+        setMode('paint');
+        autoLoadDefont();
+    })();
+</script>
+</body>
+</html>
