@@ -15,12 +15,11 @@
             --grid-line: #d6d6d6;
             --cell-off: #ffffff;
             --cell-on: #179b63;
-            --cell-hover: #dff5ea;
+            --cell-hover: #e6f5ee;
             --panel-bg: #f7f7f7;
             --border: rgba(0,0,0,.12);
             --text: #111111;
             --muted: #666666;
-            --accent: #111111;
         }
 
         *{
@@ -96,7 +95,8 @@
             padding: .45rem .55rem !important;
         }
 
-        .editor-panel button{
+        .editor-panel button,
+        .editor-panel .button-link{
             appearance: none;
             -webkit-appearance: none;
             display: inline-flex;
@@ -113,9 +113,11 @@
             cursor: pointer;
             box-shadow: none !important;
             text-shadow: none !important;
+            text-decoration: none !important;
         }
 
-        .editor-panel button:hover{
+        .editor-panel button:hover,
+        .editor-panel .button-link:hover{
             background: #f0f0f0 !important;
         }
 
@@ -188,6 +190,7 @@
             height: var(--cell-size);
             background: var(--cell-off);
             border: 1px solid rgba(0,0,0,.12);
+            transition: background-color .08s linear, box-shadow .08s linear, outline-color .08s linear;
         }
 
         .cell.is-on{
@@ -199,6 +202,17 @@
             background: var(--cell-hover);
         }
 
+        .cell.is-stamp-preview{
+            background: rgba(15,122,77,.22);
+            outline: 2px solid rgba(15,122,77,.75);
+            outline-offset: -2px;
+        }
+
+        .cell.is-stamp-preview.is-on{
+            background: rgba(23,155,99,.65);
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,.85);
+        }
+
         .stack{
             display: grid;
             gap: .5rem;
@@ -206,6 +220,21 @@
 
         .w-100{
             width: 100%;
+        }
+
+        .export-target{
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: .5rem;
+            align-items: stretch;
+        }
+
+        .mono{
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+
+        #linksOutput{
+            min-height: 12rem;
         }
     </style>
 </head>
@@ -283,11 +312,13 @@
 
                     <div class="controls-row">
                         <button id="centerBtn" type="button">Centreer tekst</button>
+                        <button id="stampModeBtn" type="button">Stempelmodus</button>
                     </div>
 
                     <p class="small muted">
-                        Bij geladen <strong>defont</strong>-data gebruikt de editor die glyphs.
-                        Zonder JSON valt hij terug op een eenvoudige ingebouwde bitmapset.
+                        In stempelmodus zie je een semi-transparant voorbeeld.
+                        Klik om te plaatsen. Klik en sleep om het voorbeeld te verplaatsen zonder meteen te plaatsen.
+                        Druk op <strong>Esc</strong> om stempelmodus te verlaten.
                     </p>
                 </section>
 
@@ -304,6 +335,23 @@
 
                     <p class="small muted">
                         Flat array exporteert de huidige tekening rij-voor-rij.
+                    </p>
+                </section>
+
+                <section class="editor-panel">
+                    <h2>Beeldexport</h2>
+
+                    <div id="downloadTargets" class="stack"></div>
+
+                    <div class="controls-row" style="margin-top:.75rem;">
+                        <button id="copyAllUrlsBtn" type="button">Kopieer alle URL's</button>
+                        <button id="copyHtmlListBtn" type="button">Kopieer HTML-lijst</button>
+                    </div>
+
+                    <textarea id="linksOutput" class="mono" spellcheck="false" readonly></textarea>
+
+                    <p class="small muted">
+                        Deze links worden automatisch bijgewerkt wanneer het raster verandert.
                     </p>
                 </section>
             </div>
@@ -327,10 +375,21 @@
     (function () {
         'use strict';
 
+        const EXPORT_TARGETS = [
+            { label: 'Facebook profile picture', url: '../src/facebook-profile-picture.jpg.php' },
+            { label: 'Instagram profile picture', url: '../src/instagram-profile-picture.jpg.php' },
+            { label: 'Instagram post', url: '../src/instagram-post.png.php' },
+            { label: 'LinkedIn profile picture', url: '../src/linkedin-profile-picture.jpg.php' },
+            { label: 'Pinterest profile picture', url: '../src/pinterest-profile-picture.png.php' },
+            { label: 'X profile picture', url: '../src/x-profile-picture.png.php' }
+        ];
+
         const gridEl = document.getElementById('grid');
         const outputEl = document.getElementById('output');
         const statusEl = document.getElementById('status');
         const fontStatusEl = document.getElementById('fontStatus');
+        const linksOutputEl = document.getElementById('linksOutput');
+        const downloadTargetsEl = document.getElementById('downloadTargets');
 
         const columnsEl = document.getElementById('columns');
         const rowsEl = document.getElementById('rows');
@@ -351,22 +410,38 @@
 
         const stampBtn = document.getElementById('stampBtn');
         const centerBtn = document.getElementById('centerBtn');
+        const stampModeBtn = document.getElementById('stampModeBtn');
+
         const export2DBtn = document.getElementById('export2DBtn');
         const exportFlatBtn = document.getElementById('exportFlatBtn');
         const copyBtn = document.getElementById('copyBtn');
         const reloadFontBtn = document.getElementById('reloadFontBtn');
 
+        const copyAllUrlsBtn = document.getElementById('copyAllUrlsBtn');
+        const copyHtmlListBtn = document.getElementById('copyHtmlListBtn');
+
         let columns = 16;
         let rows = 16;
         let grid = [];
         let cells = [];
+
         let mode = 'paint';
         let isPointerDown = false;
         let lastPaintKey = null;
 
+        let stampMode = false;
+        let stampPreviewCells = [];
+        let stampPreviewOrigin = null;
+        let stampDragActive = false;
+        let stampDragMoved = false;
+
+        let lastHoverCellEl = null;
+
         let defontMap = new Map();
         let defontMeta = {};
         let defontSource = '';
+
+        let currentExportItems = [];
 
         const FALLBACK_5X7 = {
             'A': ['01110','10001','10001','11111','10001','10001','10001'],
@@ -429,6 +504,17 @@
             toggleBtn.classList.toggle('is-active', mode === 'toggle');
         }
 
+        function setStampModeState(active) {
+            stampMode = !!active;
+            stampModeBtn.classList.toggle('is-active', stampMode);
+
+            if (!stampMode) {
+                stampDragActive = false;
+                stampDragMoved = false;
+                clearStampPreview();
+            }
+        }
+
         function updateStatus() {
             let active = 0;
             for (let y = 0; y < rows; y++) {
@@ -460,9 +546,28 @@
         function updateDefaultOutput() {
             export2DJson();
             updateStatus();
+            updateExportTargets();
+        }
+
+        function clearHover() {
+            if (lastHoverCellEl) {
+                lastHoverCellEl.classList.remove('is-hover');
+                lastHoverCellEl = null;
+            }
+        }
+
+        function clearStampPreview() {
+            for (const el of stampPreviewCells) {
+                el.classList.remove('is-stamp-preview');
+            }
+            stampPreviewCells = [];
+            stampPreviewOrigin = null;
         }
 
         function renderGrid() {
+            clearHover();
+            clearStampPreview();
+
             gridEl.innerHTML = '';
             gridEl.style.gridTemplateColumns = `repeat(${columns}, var(--cell-size))`;
             cells = [];
@@ -794,6 +899,63 @@
             updateDefaultOutput();
         }
 
+        function getTextGlyphCells(text, startX, startY) {
+            const spacing = 1;
+            let x = startX;
+            const coords = [];
+
+            for (let i = 0; i < text.length; i++) {
+                const glyph = getGlyph(text[i]);
+
+                for (let gy = 0; gy < glyph.length; gy++) {
+                    for (let gx = 0; gx < glyph[gy].length; gx++) {
+                        if (!glyph[gy][gx]) continue;
+
+                        const px = x + gx;
+                        const py = startY + gy;
+
+                        if (px >= 0 && py >= 0 && px < columns && py < rows) {
+                            coords.push({ x: px, y: py });
+                        }
+                    }
+                }
+
+                x += glyphWidth(glyph);
+                if (i < text.length - 1) x += spacing;
+            }
+
+            return coords;
+        }
+
+        function previewStampAt(startX, startY) {
+            clearStampPreview();
+
+            const text = textInputEl.value || '';
+            if (!text) return;
+
+            const coords = getTextGlyphCells(text, startX, startY);
+
+            for (const coord of coords) {
+                const cell = cells[coord.y] && cells[coord.y][coord.x];
+                if (!cell) continue;
+                cell.classList.add('is-stamp-preview');
+                stampPreviewCells.push(cell);
+            }
+
+            stampPreviewOrigin = { x: startX, y: startY };
+            stampXEl.value = String(startX);
+            stampYEl.value = String(startY);
+        }
+
+        function commitStampPreview() {
+            if (!stampPreviewOrigin) return;
+            const text = textInputEl.value || '';
+            if (!text) return;
+
+            stampText(text, stampPreviewOrigin.x, stampPreviewOrigin.y);
+            previewStampAt(stampPreviewOrigin.x, stampPreviewOrigin.y);
+        }
+
         function centerText() {
             const text = textInputEl.value || '';
             const size = measureText(text);
@@ -804,17 +966,125 @@
             stampText(text, x, y);
         }
 
-        async function copyOutput() {
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function setButtonFlashText(button, text, resetText) {
+            if (!button) return;
+            const original = resetText || button.textContent;
+            button.textContent = text;
+            window.setTimeout(() => {
+                button.textContent = original;
+            }, 1000);
+        }
+
+        async function copyTextToClipboard(text, button, doneText, fallbackResetText) {
             try {
-                await navigator.clipboard.writeText(outputEl.value);
-                copyBtn.textContent = 'Gekopieerd';
-                window.setTimeout(() => {
-                    copyBtn.textContent = 'Kopieer';
-                }, 1000);
+                await navigator.clipboard.writeText(text);
+                setButtonFlashText(button, doneText || 'Gekopieerd', fallbackResetText || button.textContent);
             } catch (error) {
-                outputEl.focus();
-                outputEl.select();
+                const temp = document.createElement('textarea');
+                temp.value = text;
+                document.body.appendChild(temp);
+                temp.select();
+                try {
+                    document.execCommand('copy');
+                    setButtonFlashText(button, doneText || 'Gekopieerd', fallbackResetText || button.textContent);
+                } finally {
+                    document.body.removeChild(temp);
+                }
             }
+        }
+
+        async function copyOutput() {
+            await copyTextToClipboard(outputEl.value, copyBtn, 'Gekopieerd', 'Kopieer');
+        }
+
+        function buildActiveDataParams() {
+            const params = new URLSearchParams();
+
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < columns; x++) {
+                    if (!grid[y][x]) continue;
+                    params.append(`data[${y}][${x}]`, String((y * columns) + x + 1));
+                }
+            }
+
+            return params;
+        }
+
+        function appendObjectParams(params, obj) {
+            if (!obj || typeof obj !== 'object') return;
+            for (const [key, value] of Object.entries(obj)) {
+                if (value == null || value === '') continue;
+                params.set(key, String(value));
+            }
+        }
+
+        function buildExportUrl(target) {
+            const raw = String(target.url || '');
+            const [basePath, existingQueryString = ''] = raw.split('?');
+            const params = new URLSearchParams(existingQueryString);
+
+            for (const key of Array.from(params.keys())) {
+                if (key.startsWith('data[')) {
+                    params.delete(key);
+                }
+            }
+
+            appendObjectParams(params, target.params);
+
+            if (typeof target.dynamicParams === 'function') {
+                appendObjectParams(params, target.dynamicParams({
+                    columns,
+                    rows,
+                    grid
+                }));
+            }
+
+            const dataParams = buildActiveDataParams();
+            for (const [key, value] of dataParams.entries()) {
+                params.append(key, value);
+            }
+
+            const qs = params.toString();
+            return qs ? `${basePath}?${qs}` : basePath;
+        }
+
+        function buildHtmlList(items) {
+            const lines = [];
+            lines.push('<ul>');
+            for (const item of items) {
+                lines.push(`    <li><a href="${escapeHtml(item.href)}">${escapeHtml(item.label)}</a></li>`);
+            }
+            lines.push('</ul>');
+            return lines.join('\n');
+        }
+
+        function updateExportTargets() {
+            currentExportItems = EXPORT_TARGETS.map(target => ({
+                label: target.label,
+                href: buildExportUrl(target)
+            }));
+
+            downloadTargetsEl.innerHTML = currentExportItems.map((item, index) => {
+                return `
+                <div class="export-target">
+                    <a class="button-link w-100" href="${escapeHtml(item.href)}" target="_blank" rel="noopener">
+                        ${escapeHtml(item.label)}
+                    </a>
+                    <button type="button" class="copy-target-btn" data-index="${index}">Kopieer URL</button>
+                </div>
+            `;
+            }).join('');
+
+            linksOutputEl.value = buildHtmlList(currentExportItems);
         }
 
         function updateFontStatus(kind, text) {
@@ -832,6 +1102,10 @@
                 updateFontStatus('status-ok', `defont geladen: ${defontMap.size} glyphs (${sourceLabel})`);
             } else {
                 updateFontStatus('status-warn', `JSON geladen, maar geen bruikbare glyphs gevonden (${sourceLabel})`);
+            }
+
+            if (stampMode && stampPreviewOrigin) {
+                previewStampAt(stampPreviewOrigin.x, stampPreviewOrigin.y);
             }
         }
 
@@ -855,7 +1129,7 @@
                     await loadFontFromObject(data, path);
                     return;
                 } catch (error) {
-                    // try next
+                    // next
                 }
             }
 
@@ -883,9 +1157,20 @@
             resizeGrid(newColumns, newRows);
         });
 
-        paintBtn.addEventListener('click', () => setMode('paint'));
-        eraseBtn.addEventListener('click', () => setMode('erase'));
-        toggleBtn.addEventListener('click', () => setMode('toggle'));
+        paintBtn.addEventListener('click', () => {
+            setStampModeState(false);
+            setMode('paint');
+        });
+
+        eraseBtn.addEventListener('click', () => {
+            setStampModeState(false);
+            setMode('erase');
+        });
+
+        toggleBtn.addEventListener('click', () => {
+            setStampModeState(false);
+            setMode('toggle');
+        });
 
         clearBtn.addEventListener('click', clearGrid);
         fillBtn.addEventListener('click', fillGrid);
@@ -900,18 +1185,79 @@
 
         centerBtn.addEventListener('click', centerText);
 
+        stampModeBtn.addEventListener('click', function () {
+            setStampModeState(!stampMode);
+
+            if (stampMode) {
+                const x = Math.max(0, parseInt(stampXEl.value, 10) || 0);
+                const y = Math.max(0, parseInt(stampYEl.value, 10) || 0);
+                previewStampAt(x, y);
+            }
+        });
+
         export2DBtn.addEventListener('click', export2DJson);
         exportFlatBtn.addEventListener('click', exportFlatJson);
         copyBtn.addEventListener('click', copyOutput);
+
+        copyAllUrlsBtn.addEventListener('click', async function () {
+            const text = currentExportItems.map(item => item.href).join('\n');
+            await copyTextToClipboard(text, copyAllUrlsBtn, 'Gekopieerd', 'Kopieer alle URL\'s');
+        });
+
+        copyHtmlListBtn.addEventListener('click', async function () {
+            await copyTextToClipboard(linksOutputEl.value, copyHtmlListBtn, 'Gekopieerd', 'Kopieer HTML-lijst');
+        });
+
+        downloadTargetsEl.addEventListener('click', async function (event) {
+            const button = event.target.closest('.copy-target-btn');
+            if (!button) return;
+
+            const index = Number(button.dataset.index);
+            const item = currentExportItems[index];
+            if (!item) return;
+
+            await copyTextToClipboard(item.href, button, 'Gekopieerd', 'Kopieer URL');
+        });
 
         cellSizeEl.addEventListener('input', function () {
             const size = Math.max(8, Math.min(80, parseInt(this.value, 10) || 28));
             setCellSize(size);
         });
 
+        textInputEl.addEventListener('input', function () {
+            if (stampMode && stampPreviewOrigin) {
+                previewStampAt(stampPreviewOrigin.x, stampPreviewOrigin.y);
+            }
+        });
+
+        stampXEl.addEventListener('input', function () {
+            if (stampMode) {
+                const x = Math.max(0, parseInt(stampXEl.value, 10) || 0);
+                const y = Math.max(0, parseInt(stampYEl.value, 10) || 0);
+                previewStampAt(x, y);
+            }
+        });
+
+        stampYEl.addEventListener('input', function () {
+            if (stampMode) {
+                const x = Math.max(0, parseInt(stampXEl.value, 10) || 0);
+                const y = Math.max(0, parseInt(stampYEl.value, 10) || 0);
+                previewStampAt(x, y);
+            }
+        });
+
         gridEl.addEventListener('pointerdown', function (event) {
             const cell = getCellFromPointerEvent(event);
             if (!cell) return;
+
+            if (stampMode) {
+                stampDragActive = true;
+                stampDragMoved = false;
+                previewStampAt(cell.x, cell.y);
+                event.preventDefault();
+                return;
+            }
+
             isPointerDown = true;
             lastPaintKey = null;
             applyTool(cell.x, cell.y);
@@ -923,10 +1269,28 @@
             const cell = getCellFromPointerEvent(event);
             if (!cell) return;
 
-            for (const row of cells) {
-                for (const c of row) c.classList.remove('is-hover');
+            if (lastHoverCellEl !== cell.el) {
+                clearHover();
+                cell.el.classList.add('is-hover');
+                lastHoverCellEl = cell.el;
             }
-            cell.el.classList.add('is-hover');
+
+            if (stampMode) {
+                if (stampDragActive) {
+                    if (
+                        !stampPreviewOrigin ||
+                        stampPreviewOrigin.x !== cell.x ||
+                        stampPreviewOrigin.y !== cell.y
+                    ) {
+                        stampDragMoved = true;
+                    }
+                    previewStampAt(cell.x, cell.y);
+                } else {
+                    previewStampAt(cell.x, cell.y);
+                }
+                event.preventDefault();
+                return;
+            }
 
             if (!isPointerDown) return;
             applyTool(cell.x, cell.y);
@@ -935,14 +1299,61 @@
         });
 
         gridEl.addEventListener('pointerleave', function () {
-            for (const row of cells) {
-                for (const c of row) c.classList.remove('is-hover');
+            clearHover();
+
+            if (stampMode && !stampDragActive) {
+                clearStampPreview();
             }
         });
 
-        document.addEventListener('pointerup', function () {
+        document.addEventListener('pointerup', function (event) {
+            if (stampMode && stampDragActive) {
+                const cell = getCellFromPointerEvent(event);
+                if (cell) {
+                    previewStampAt(cell.x, cell.y);
+                }
+
+                const shouldCommit = !stampDragMoved;
+                stampDragActive = false;
+
+                if (shouldCommit) {
+                    commitStampPreview();
+                }
+
+                return;
+            }
+
             isPointerDown = false;
             lastPaintKey = null;
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                setStampModeState(false);
+                return;
+            }
+
+            if (!stampMode || !stampPreviewOrigin) return;
+
+            let dx = 0;
+            let dy = 0;
+
+            if (event.key === 'ArrowLeft') dx = -1;
+            else if (event.key === 'ArrowRight') dx = 1;
+            else if (event.key === 'ArrowUp') dy = -1;
+            else if (event.key === 'ArrowDown') dy = 1;
+            else if (event.key === 'Enter') {
+                commitStampPreview();
+                event.preventDefault();
+                return;
+            } else {
+                return;
+            }
+
+            const nextX = Math.max(0, stampPreviewOrigin.x + dx);
+            const nextY = Math.max(0, stampPreviewOrigin.y + dy);
+            previewStampAt(nextX, nextY);
+            event.preventDefault();
         });
 
         columns = parseInt(columnsEl.value, 10) || 16;
