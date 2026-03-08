@@ -17,7 +17,6 @@
             --cell-on: #179b63;
             --cell-hover: #e6f5ee;
             --panel-bg: #f7f7f7;
-            --border: rgba(0,0,0,.12);
             --text: #111111;
             --muted: #666666;
         }
@@ -127,12 +126,6 @@
             border-color: #111 !important;
         }
 
-        .editor-panel button.is-danger{
-            background: #8d1f1f !important;
-            color: #fff !important;
-            border-color: #8d1f1f !important;
-        }
-
         .editor-panel button.is-good{
             background: #0f7a4d !important;
             color: #fff !important;
@@ -232,10 +225,6 @@
         .mono{
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         }
-
-        #linksOutput{
-            min-height: 12rem;
-        }
     </style>
 </head>
 <body id="top">
@@ -272,6 +261,24 @@
                         <button id="fillBtn" type="button">Volmaken</button>
                         <button id="invertBtn" type="button">Inverteren</button>
                     </div>
+                </section>
+
+                <section class="editor-panel">
+                    <h2>Verschuiven</h2>
+
+                    <div class="controls-row">
+                        <button id="shiftLeftBtn" type="button">← Links</button>
+                        <button id="shiftRightBtn" type="button">Rechts →</button>
+                    </div>
+
+                    <div class="controls-row">
+                        <button id="shiftUpBtn" type="button">↑ Omhoog</button>
+                        <button id="shiftDownBtn" type="button">Omlaag ↓</button>
+                    </div>
+
+                    <p class="small muted">
+                        Verschuift de hele tekening één vakje. Wat buiten het raster valt, verdwijnt.
+                    </p>
                 </section>
 
                 <section class="editor-panel">
@@ -345,10 +352,7 @@
 
                     <div class="controls-row" style="margin-top:.75rem;">
                         <button id="copyAllUrlsBtn" type="button">Kopieer alle URL's</button>
-                        <button id="copyHtmlListBtn" type="button">Kopieer HTML-lijst</button>
                     </div>
-
-                    <textarea id="linksOutput" class="mono" spellcheck="false" readonly></textarea>
 
                     <p class="small muted">
                         Deze links worden automatisch bijgewerkt wanneer het raster verandert.
@@ -388,7 +392,6 @@
         const outputEl = document.getElementById('output');
         const statusEl = document.getElementById('status');
         const fontStatusEl = document.getElementById('fontStatus');
-        const linksOutputEl = document.getElementById('linksOutput');
         const downloadTargetsEl = document.getElementById('downloadTargets');
 
         const columnsEl = document.getElementById('columns');
@@ -408,6 +411,11 @@
         const fillBtn = document.getElementById('fillBtn');
         const invertBtn = document.getElementById('invertBtn');
 
+        const shiftLeftBtn = document.getElementById('shiftLeftBtn');
+        const shiftRightBtn = document.getElementById('shiftRightBtn');
+        const shiftUpBtn = document.getElementById('shiftUpBtn');
+        const shiftDownBtn = document.getElementById('shiftDownBtn');
+
         const stampBtn = document.getElementById('stampBtn');
         const centerBtn = document.getElementById('centerBtn');
         const stampModeBtn = document.getElementById('stampModeBtn');
@@ -418,7 +426,6 @@
         const reloadFontBtn = document.getElementById('reloadFontBtn');
 
         const copyAllUrlsBtn = document.getElementById('copyAllUrlsBtn');
-        const copyHtmlListBtn = document.getElementById('copyHtmlListBtn');
 
         let columns = 16;
         let rows = 16;
@@ -438,8 +445,6 @@
         let lastHoverCellEl = null;
 
         let defontMap = new Map();
-        let defontMeta = {};
-        let defontSource = '';
 
         let currentExportItems = [];
 
@@ -675,6 +680,25 @@
                     grid[y][x] = grid[y][x] ? 0 : 1;
                 }
             }
+            renderGrid();
+        }
+
+        function shiftGrid(dx, dy) {
+            const next = createEmptyGrid(columns, rows);
+
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < columns; x++) {
+                    if (!grid[y][x]) continue;
+
+                    const nx = x + dx;
+                    const ny = y + dy;
+
+                    if (nx < 0 || ny < 0 || nx >= columns || ny >= rows) continue;
+                    next[ny][nx] = 1;
+                }
+            }
+
+            grid = next;
             renderGrid();
         }
 
@@ -1041,11 +1065,7 @@
             appendObjectParams(params, target.params);
 
             if (typeof target.dynamicParams === 'function') {
-                appendObjectParams(params, target.dynamicParams({
-                    columns,
-                    rows,
-                    grid
-                }));
+                appendObjectParams(params, target.dynamicParams({ columns, rows, grid }));
             }
 
             const dataParams = buildActiveDataParams();
@@ -1055,16 +1075,6 @@
 
             const qs = params.toString();
             return qs ? `${basePath}?${qs}` : basePath;
-        }
-
-        function buildHtmlList(items) {
-            const lines = [];
-            lines.push('<ul>');
-            for (const item of items) {
-                lines.push(`    <li><a href="${escapeHtml(item.href)}">${escapeHtml(item.label)}</a></li>`);
-            }
-            lines.push('</ul>');
-            return lines.join('\n');
         }
 
         function updateExportTargets() {
@@ -1083,8 +1093,6 @@
                 </div>
             `;
             }).join('');
-
-            linksOutputEl.value = buildHtmlList(currentExportItems);
         }
 
         function updateFontStatus(kind, text) {
@@ -1095,8 +1103,6 @@
         async function loadFontFromObject(data, sourceLabel) {
             const result = normalizeDefontDataset(data);
             defontMap = result.map;
-            defontMeta = result.meta || {};
-            defontSource = sourceLabel || '';
 
             if (defontMap.size > 0) {
                 updateFontStatus('status-ok', `defont geladen: ${defontMap.size} glyphs (${sourceLabel})`);
@@ -1176,6 +1182,11 @@
         fillBtn.addEventListener('click', fillGrid);
         invertBtn.addEventListener('click', invertGrid);
 
+        shiftLeftBtn.addEventListener('click', () => shiftGrid(-1, 0));
+        shiftRightBtn.addEventListener('click', () => shiftGrid(1, 0));
+        shiftUpBtn.addEventListener('click', () => shiftGrid(0, -1));
+        shiftDownBtn.addEventListener('click', () => shiftGrid(0, 1));
+
         stampBtn.addEventListener('click', function () {
             const text = textInputEl.value || '';
             const x = Math.max(0, parseInt(stampXEl.value, 10) || 0);
@@ -1202,10 +1213,6 @@
         copyAllUrlsBtn.addEventListener('click', async function () {
             const text = currentExportItems.map(item => item.href).join('\n');
             await copyTextToClipboard(text, copyAllUrlsBtn, 'Gekopieerd', 'Kopieer alle URL\'s');
-        });
-
-        copyHtmlListBtn.addEventListener('click', async function () {
-            await copyTextToClipboard(linksOutputEl.value, copyHtmlListBtn, 'Gekopieerd', 'Kopieer HTML-lijst');
         });
 
         downloadTargetsEl.addEventListener('click', async function (event) {
