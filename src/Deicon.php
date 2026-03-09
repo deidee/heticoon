@@ -249,7 +249,7 @@ class Deicon
 
     /**
      * Build a flat list of drawable rectangles.
-     * This lets us render either raster or SVG from the same geometry.
+     * Uses x1/y1/x2/y2 so raster output remains the reference.
      */
     private function buildRectangles(): array
     {
@@ -258,19 +258,19 @@ class Deicon
 
         for ($row = 0; $row < $this->rows; $row++) {
             for ($col = 0; $col < $this->cols; $col++) {
-                $x = (($col + $this->offset + $this->padding) * $this->size) + $this->x;
-                $y = (($row + $this->offset + $this->padding) * $this->size) + $this->y;
-                $w = max(1, $this->size + mt_rand(-1, 1));
-                $h = max(1, $this->size + mt_rand(-1, 1));
+                $x1 = (($col + $this->offset + $this->padding) * $this->size) + $this->x;
+                $y1 = (($row + $this->offset + $this->padding) * $this->size) + $this->y;
+                $x2 = $x1 + $this->size + mt_rand(-1, 1);
+                $y2 = $y1 + $this->size + mt_rand(-1, 1);
                 $color = !empty($this->palette[$i]) ? $this->palette[$i] : self::COLOR_WHITE;
 
                 // Works for both dense and sparse arrays.
                 if (!empty($this->data[$row][$col])) {
                     $rectangles[] = [
-                        'x' => $x,
-                        'y' => $y,
-                        'width' => $w,
-                        'height' => $h,
+                        'x1' => $x1,
+                        'y1' => $y1,
+                        'x2' => $x2,
+                        'y2' => $y2,
                         'color' => $color,
                         'opacity' => 0.5,
                     ];
@@ -297,10 +297,10 @@ class Deicon
             $draw->setFillColor(new ImagickPixel($rect['color']));
             $draw->setFillOpacity($rect['opacity']);
             $draw->rectangle(
-                $rect['x'],
-                $rect['y'],
-                $rect['x'] + $rect['width'],
-                $rect['y'] + $rect['height']
+                $rect['x1'],
+                $rect['y1'],
+                $rect['x2'],
+                $rect['y2']
             );
         }
 
@@ -317,11 +317,14 @@ class Deicon
         $svg[] = '  <rect x="0" y="0" width="' . (int)$this->width . '" height="' . (int)$this->height . '" fill="' . htmlspecialchars(self::COLOR_WHITE, ENT_QUOTES, 'UTF-8') . '" />';
 
         foreach ($rectangles as $rect) {
+            $width = max(1, ($rect['x2'] - $rect['x1']) + 1);
+            $height = max(1, ($rect['y2'] - $rect['y1']) + 1);
+
             $svg[] = '  <rect'
-                . ' x="' . (int)$rect['x'] . '"'
-                . ' y="' . (int)$rect['y'] . '"'
-                . ' width="' . (int)$rect['width'] . '"'
-                . ' height="' . (int)$rect['height'] . '"'
+                . ' x="' . (int)$rect['x1'] . '"'
+                . ' y="' . (int)$rect['y1'] . '"'
+                . ' width="' . (int)$width . '"'
+                . ' height="' . (int)$height . '"'
                 . ' fill="' . htmlspecialchars((string)$rect['color'], ENT_QUOTES, 'UTF-8') . '"'
                 . ' fill-opacity="' . rtrim(rtrim(number_format((float)$rect['opacity'], 3, '.', ''), '0'), '.') . '"'
                 . ' />';
