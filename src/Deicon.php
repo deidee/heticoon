@@ -15,6 +15,9 @@ class Deicon
     const COLOR_WHITE = '#ffffff';
 
     private $im;
+    private $blob = '';
+    private $mimeType = 'image/png';
+
     private $cols = 16;
     private $rows = 16;
     private $x = 0;
@@ -87,7 +90,7 @@ class Deicon
         $method = 'set' . ucfirst($name);
 
         if (method_exists($this, $method)) {
-            $this->$method($value); // fixed: pass $value, not $name
+            $this->$method($value);
         } else {
             $this->$name = $value;
             $this->resolveDimensions();
@@ -96,11 +99,17 @@ class Deicon
 
     public function __toString()
     {
-        $this->draw();
+        try {
+            $this->draw();
 
-        header('Content-Type: ' . $this->im->getImageMimeType());
+            if (!headers_sent()) {
+                header('Content-Type: ' . $this->mimeType);
+            }
 
-        return $this->im->getImageBlob();
+            return (string) $this->blob;
+        } catch (\Throwable $e) {
+            return '';
+        }
     }
 
     /**
@@ -165,6 +174,55 @@ class Deicon
         }
     }
 
+    private function normalizeType($type): string
+    {
+        $type = strtolower(trim((string) $type));
+        $type = ltrim($type, '.');
+
+        $map = [
+            'jpg' => 'jpeg',
+            'image/jpeg' => 'jpeg',
+            'image/jpg' => 'jpeg',
+            'png' => 'png',
+            'image/png' => 'png',
+            'svg' => 'svg',
+            'image/svg+xml' => 'svg',
+        ];
+
+        return $map[$type] ?? $type;
+    }
+
+    private function isSvgType(): bool
+    {
+        return $this->type === 'svg';
+    }
+
+    private function getMimeTypeForType(): string
+    {
+        switch ($this->type) {
+            case 'jpeg':
+                return 'image/jpeg';
+            case 'svg':
+                return 'image/svg+xml';
+            case 'png':
+            default:
+                return 'image/png';
+        }
+    }
+
+    private function getFileExtension(): string
+    {
+        switch ($this->type) {
+            case 'jpeg':
+                return 'jpg';
+            case 'svg':
+                return 'svg';
+            case 'png':
+            default:
+                return 'png';
+        }
+    }
+
     public function deJade(): string
     {
         $r = mt_rand(0, 127);
@@ -190,6 +248,93 @@ class Deicon
     }
 
     /**
+     * Build a flat list of drawable rectangles.
+     * This lets us render either raster or SVG from the same geometry.
+     */
+    private function buildRectangles(): array
+    {
+        $rectangles = [];
+        $i = 0;
+
+        for ($row = 0; $row < $this->rows; $row++) {
+            for ($col = 0; $col < $this->cols; $col++) {
+                $x = (($col + $this->offset + $this->padding) * $this->size) + $this->x;
+                $y = (($row + $this->offset + $this->padding) * $this->size) + $this->y;
+                $w = max(1, $this->size + mt_rand(-1, 1));
+                $h = max(1, $this->size + mt_rand(-1, 1));
+                $color = !empty($this->palette[$i]) ? $this->palette[$i] : self::COLOR_WHITE;
+
+                // Works for both dense and sparse arrays.
+                if (!empty($this->data[$row][$col])) {
+                    $rectangles[] = [
+                        'x' => $x,
+                        'y' => $y,
+                        'width' => $w,
+                        'height' => $h,
+                        'color' => $color,
+                        'opacity' => 0.5,
+                    ];
+                }
+
+                $i++;
+            }
+        }
+
+        return $rectangles;
+    }
+
+    private function renderRaster(array $rectangles): void
+    {
+        $this->im = new Imagick();
+        $this->im->newImage($this->width, $this->height, new ImagickPixel(self::COLOR_WHITE));
+        $this->im->setImageFormat($this->type);
+
+        $draw = new ImagickDraw();
+        $draw->setViewbox(0, 0, $this->width, $this->height);
+        $draw->setStrokeWidth(0);
+
+        foreach ($rectangles as $rect) {
+            $draw->setFillColor(new ImagickPixel($rect['color']));
+            $draw->setFillOpacity($rect['opacity']);
+            $draw->rectangle(
+                $rect['x'],
+                $rect['y'],
+                $rect['x'] + $rect['width'],
+                $rect['y'] + $rect['height']
+            );
+        }
+
+        $this->im->drawImage($draw);
+        $this->mimeType = $this->im->getImageMimeType();
+        $this->blob = $this->im->getImageBlob();
+    }
+
+    private function renderSvg(array $rectangles): void
+    {
+        $svg = [];
+        $svg[] = '<?xml version="1.0" encoding="UTF-8"?>';
+        $svg[] = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="' . (int)$this->width . '" height="' . (int)$this->height . '" viewBox="0 0 ' . (int)$this->width . ' ' . (int)$this->height . '">';
+        $svg[] = '  <rect x="0" y="0" width="' . (int)$this->width . '" height="' . (int)$this->height . '" fill="' . htmlspecialchars(self::COLOR_WHITE, ENT_QUOTES, 'UTF-8') . '" />';
+
+        foreach ($rectangles as $rect) {
+            $svg[] = '  <rect'
+                . ' x="' . (int)$rect['x'] . '"'
+                . ' y="' . (int)$rect['y'] . '"'
+                . ' width="' . (int)$rect['width'] . '"'
+                . ' height="' . (int)$rect['height'] . '"'
+                . ' fill="' . htmlspecialchars((string)$rect['color'], ENT_QUOTES, 'UTF-8') . '"'
+                . ' fill-opacity="' . rtrim(rtrim(number_format((float)$rect['opacity'], 3, '.', ''), '0'), '.') . '"'
+                . ' />';
+        }
+
+        $svg[] = '</svg>';
+
+        $this->im = null;
+        $this->mimeType = 'image/svg+xml';
+        $this->blob = implode("\n", $svg);
+    }
+
+    /**
      * @throws \ImagickException
      * @throws \ImagickDrawException
      * @throws \ImagickPixelException
@@ -201,41 +346,20 @@ class Deicon
         $this->blocks = $this->rows * $this->cols;
         $this->dataSet = $this->data;
         $this->palette = [];
+        $this->blob = '';
+        $this->mimeType = $this->getMimeTypeForType();
 
         // Fill the palette with colors.
         $this->populate();
 
-        // This is where the magick happens.
-        $this->im = new Imagick();
-        $this->im->newImage($this->width, $this->height, new ImagickPixel(self::COLOR_WHITE));
-        $this->im->setImageFormat($this->type);
+        $rectangles = $this->buildRectangles();
 
-        $draw = new ImagickDraw();
-        $draw->setViewbox(0, 0, $this->width, $this->height);
-        $draw->setStrokeWidth(0);
-        $i = 0;
-
-        for ($row = 0; $row < $this->rows; $row++) {
-            for ($col = 0; $col < $this->cols; $col++) {
-                $x1 = (($col + $this->offset + $this->padding) * $this->size) + $this->x;
-                $x2 = $x1 + $this->size + mt_rand(-1, 1);
-                $y1 = (($row + $this->offset + $this->padding) * $this->size) + $this->y;
-                $y2 = $y1 + $this->size + mt_rand(-1, 1);
-                $color = !empty($this->palette[$i]) ? $this->palette[$i] : self::COLOR_WHITE;
-
-                // Important:
-                // this works both for dense 16x16 arrays and sparse GET arrays.
-                if (!empty($this->data[$row][$col])) {
-                    $draw->setFillColor(new ImagickPixel($color));
-                    $draw->setFillOpacity(.5);
-                    $draw->rectangle($x1, $y1, $x2, $y2);
-                }
-
-                $i++;
-            }
+        if ($this->isSvgType()) {
+            $this->renderSvg($rectangles);
+            return;
         }
 
-        $this->im->drawImage($draw);
+        $this->renderRaster($rectangles);
     }
 
     public function getBlockCount()
@@ -247,7 +371,18 @@ class Deicon
     {
         $this->draw();
 
-        return 'data:' . $this->im->getImageMimeType() . ';base64,' . base64_encode($this->im->getImageBlob());
+        return 'data:' . $this->mimeType . ';base64,' . base64_encode($this->blob);
+    }
+
+    public function getSvg(): string
+    {
+        $previousType = $this->type;
+        $this->type = 'svg';
+        $this->draw();
+        $svg = (string) $this->blob;
+        $this->type = $previousType;
+
+        return $svg;
     }
 
     public function populate()
@@ -276,10 +411,10 @@ class Deicon
         $this->draw();
 
         $dir = '../dist/images/';
-        $filename = 'image-' . time() . '.' . strtolower($this->im->getImageFormat());
+        $filename = 'image-' . time() . '.' . $this->getFileExtension();
         $target = $dir . $filename;
 
-        file_put_contents($target, $this->im->getImageBlob());
+        file_put_contents($target, $this->blob);
     }
 
     public function setColumnCount($cols = 16)
@@ -352,7 +487,7 @@ class Deicon
 
     public function setType($type = 'png')
     {
-        $this->type = (string) $type;
+        $this->type = $this->normalizeType($type);
     }
 
     public function setAutoSize($autoSize = true)
